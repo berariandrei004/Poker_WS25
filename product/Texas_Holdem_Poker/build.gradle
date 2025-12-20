@@ -1,0 +1,52 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'jvm-test-suite'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+group = 'at.ac.hcw'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+}
+
+javafx {
+    version = "21.0.9"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+testing.suites.configureEach {
+    useJUnitJupiter()
+}
+
+//noinspection GroovyAssignabilityCheck
+run {
+    standardInput = System.in
+}
+
+application {
+    mainClass  = 'at.ac.hcw.App'
+}
+
+allprojects {
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+tasks.withType(Test).configureEach {
+    systemProperty "file.encoding", "UTF-8"
+}
