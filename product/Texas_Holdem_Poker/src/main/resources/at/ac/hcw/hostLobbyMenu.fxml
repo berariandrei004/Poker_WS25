@@ -13,7 +13,7 @@
                         <Font size="35.0" />
                     </font>
                 </Text>
-                <TextField fx:id="joinCodeField" alignment="CENTER" editable="false" promptText="XXXXXXXX" style="-fx-background-color: #40A0FA;">
+                <TextField fx:id="joinCodeField" alignment="CENTER" editable="false" promptText="XXXXXXXX" style="-fx-background-color: #40A0FA;" text="testText">
                     <font>
                         <Font size="30.0" />
                     </font>
@@ -25,5 +25,10 @@
                 <Font size="35.0" />
             </font>
         </Button>
+      <Button mnemonicParsing="false" onAction="#onLobbyCloseClicked" text="Lobby schließen">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Button>
     </children>
 </VBox>

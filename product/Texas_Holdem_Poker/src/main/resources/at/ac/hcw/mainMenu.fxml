@@ -4,24 +4,21 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="at.ac.hcw.MainMenuController">
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.MainMenuController">
    <children>
-      <Button mnemonicParsing="false" prefHeight="80.0" prefWidth="350.0" text="Spiel hosten">
+      <Button mnemonicParsing="false" onAction="#onHostClicked" prefHeight="80.0" prefWidth="350.0" text="Spiel hosten">
          <font>
-            <Font size="35.0"/>
+            <Font size="35.0" />
          </font>
       </Button>
-      <Button mnemonicParsing="false" onAction="#onJoinClicked" prefHeight="80.0" prefWidth="350.0"
-              text="Spiel beitreten">
+      <Button mnemonicParsing="false" onAction="#onJoinClicked" prefHeight="80.0" prefWidth="350.0" text="Spiel beitreten">
          <font>
-            <Font size="35.0"/>
+            <Font size="35.0" />
          </font>
       </Button>
       <Button mnemonicParsing="false" prefHeight="80.0" prefWidth="350.0" text="Anleitung">
          <font>
-            <Font size="35.0"/>
+            <Font size="35.0" />
          </font>
       </Button>
    </children>

@@ -11,6 +11,6 @@ public class MainMenuController {
     }
     @FXML
     private void onHostClicked() throws IOException {
-        App.getSceneController().switchToJoinMenu();
+        App.getSceneController().switchToHostLobbyMenu();
     }
 }

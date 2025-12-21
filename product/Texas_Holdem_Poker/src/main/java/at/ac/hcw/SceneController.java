@@ -32,4 +32,11 @@ public class SceneController {
         stage.setScene(scene);
         stage.show();
     }
+
+    public void switchToHostLobbyMenu() throws IOException {
+        root = FXMLLoader.load(getClass().getResource("hostLobbyMenu.fxml"));
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
 }
