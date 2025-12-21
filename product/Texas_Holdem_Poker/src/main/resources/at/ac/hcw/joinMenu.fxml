@@ -4,11 +4,13 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.JoinMenuController">
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="at.ac.hcw.JoinMenuController">
     <children>
         <Button mnemonicParsing="false" onAction="#onBackClicked" prefHeight="80.0" prefWidth="350.0" text="Zurück">
             <font>
-                <Font size="35.0" />
+                <Font size="35.0"/>
             </font>
         </Button>
     </children>

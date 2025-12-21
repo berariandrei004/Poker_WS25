@@ -14,17 +14,14 @@ public class App extends Application {
         sceneController = new SceneController();
         sceneController.setStage(stage);
         sceneController.switchToMainMenu();
-//        Parent root = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
-//        Scene scene = new Scene(root);
-//        stage.setTitle("Texas Holdem Poker");
-//        stage.setScene(scene);
-//        stage.show();
     }
     public static SceneController getSceneController() {
         return sceneController;
     }
     @SuppressWarnings("unused")
     public static void main(String[] args) {
+//        JoinCodeHandler.IPv4ToJoinCode("192.168.0.1");
+//        JoinCodeHandler.joinCodeToIPv4("FRFRAAAB");
         launch();
     }
 }
