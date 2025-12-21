@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.HostLobbyController">
+    <children>
+        <VBox alignment="CENTER" maxWidth="350.0" prefHeight="150.0" prefWidth="350.0" style="-fx-background-color: #40A0FA;">
+            <children>
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lobby-ID:">
+                    <font>
+                        <Font size="35.0" />
+                    </font>
+                </Text>
+                <TextField fx:id="joinCodeField" alignment="CENTER" editable="false" promptText="XXXXXXXX" style="-fx-background-color: #40A0FA;">
+                    <font>
+                        <Font size="30.0" />
+                    </font>
+                </TextField>
+            </children>
+        </VBox>
+        <Button mnemonicParsing="false" prefHeight="80.0" prefWidth="350.0" text="Spiel beginnen">
+            <font>
+                <Font size="35.0" />
+            </font>
+        </Button>
+    </children>
+</VBox>

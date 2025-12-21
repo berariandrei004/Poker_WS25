@@ -9,4 +9,8 @@ public class MainMenuController {
     private void onJoinClicked() throws IOException {
         App.getSceneController().switchToJoinMenu();
     }
+    @FXML
+    private void onHostClicked() throws IOException {
+        App.getSceneController().switchToJoinMenu();
+    }
 }
