@@ -31,7 +31,7 @@
                   <font>
                      <Font size="20.0" />
                   </font></Label>
-                   <Spinner fx:id="playerCountSpinner" initialValue="2" max="4" maxWidth="60.0" min="2" />
+                   <Spinner fx:id="playerCountSpinner" initialValue="4" max="4" maxWidth="60.0" min="2" />
                </HBox>
 
                <HBox alignment="CENTER" spacing="10">
