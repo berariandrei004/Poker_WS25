@@ -1,6 +1,7 @@
 package at.ac.hcw;
 import java.io.*;
 import java.net.Socket;
+import java.util.function.Consumer;
 
 public class PokerClient {
     private Socket socket;
@@ -36,5 +37,18 @@ public class PokerClient {
     }
     public void disconnect() throws IOException {
         socket.close();
+    }
+    public void startListener(Consumer<String> onMessageReceived) {
+        new Thread(() -> {
+            try {
+                String msg;
+                while ((msg = in.readLine()) != null) {
+                    // Nachricht an UI oder Spiel-Controller weitergeben
+                    onMessageReceived.accept(msg);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }

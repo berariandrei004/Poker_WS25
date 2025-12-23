@@ -1,4 +1,5 @@
 package at.ac.hcw;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -30,7 +31,17 @@ public class JoinMenuController {
                 boolean connected = client.connect();
                 if (connected) {
                     System.out.println("Erfolgreich verbunden!");
-                    // switch to LobbyMenu in the future
+                    client.startListener(msg -> {
+                        Platform.runLater(() -> {
+                            if (msg.startsWith("YOUR_TURN")) {
+                                //enablePlayerActions();
+                            } else if (msg.startsWith("GAME_STATE")) {
+                                //updateGameState(msg);
+                            } else if (msg.startsWith("LOBBY_UPDATE")) {
+                                //updateLobbyState();
+                            }
+                        });
+                    });
                 } else {
                     System.out.println("Verbindung fehlgeschlagen!");
                 }
