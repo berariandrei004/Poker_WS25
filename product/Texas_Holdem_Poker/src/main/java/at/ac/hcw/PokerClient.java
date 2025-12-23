@@ -1,6 +1,7 @@
 package at.ac.hcw;
 import java.io.*;
 import java.net.Socket;
+import java.util.function.Consumer;
 
 public class PokerClient {
     private Socket socket;
