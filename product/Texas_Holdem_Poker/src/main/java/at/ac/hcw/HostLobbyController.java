@@ -16,5 +16,9 @@ public class HostLobbyController {
     private void onLobbyCloseClicked() throws IOException {
         App.getSceneController().switchToMainMenu();
     }
+    @FXML
+    private void onStartGameClicked() throws IOException {
+        App.getSceneController().switchToPokerTable();
+    }
 
 }

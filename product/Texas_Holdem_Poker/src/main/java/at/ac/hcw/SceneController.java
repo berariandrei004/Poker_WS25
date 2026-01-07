@@ -39,4 +39,12 @@ public class SceneController {
         stage.setScene(scene);
         stage.show();
     }
+
+    public void switchToPokerTable() {
+        PokerTableView tableView = new PokerTableView();
+        Parent root = tableView.createView();
+        Scene scene = new Scene(root, 900, 600);
+        stage.setScene(scene);
+        stage.show();
+    }
 }
