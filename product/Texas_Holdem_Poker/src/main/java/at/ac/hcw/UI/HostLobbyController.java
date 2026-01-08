@@ -18,8 +18,7 @@ public class HostLobbyController {
     @FXML private TextField smallBlindField;
     @FXML private TextField startingCashField;
     @FXML
-    private void onLobbyCloseClicked() throws IOException {
-        App.getSceneController().stopServer();
+    private void onBackClicked() throws IOException {
         App.getSceneController().switchToMainMenu();
     }
     @FXML

@@ -10,7 +10,7 @@ public class JoinMenuController {
     private TextField joinCodeField;
 
     @FXML
-    private void onJoinButtonClicked() {
+    private void onJoinButtonClicked() throws IOException {
         String joinCode = joinCodeField.getText().trim();
         if (joinCode.length() != 8) {
             System.out.println("JoinCode muss 8 Zeichen haben");

@@ -1,5 +1,6 @@
 package at.ac.hcw.UI;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -26,7 +27,13 @@ public class SceneController {
             serverProcess.destroy();
         }
     }
-
+    public void switchToGeneralLobbyMenu() throws IOException {
+        root = FXMLLoader.load(getClass().getResource("generalLobbyMenu.fxml"));
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+        System.out.println("Switched to generalLobby");
+    }
     public void switchToMainMenu() throws IOException {
         root = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
         scene = new Scene(root);
@@ -67,11 +74,17 @@ public class SceneController {
 
         Task<Void> task = new Task<>() {
             @Override
-            protected Void call() {
+            protected Void call() throws IOException {
                 boolean connected = client.connect();
                 if (connected) {
-                    System.out.println("Erfolgreich verbunden!");
-                    // Optional: switch to Lobby oder Table
+                    System.out.println("Erfolgreich verbunden!!!");
+                    Platform.runLater(() -> {
+                        try {
+                            switchToGeneralLobbyMenu();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
                 } else {
                     System.out.println("Verbindung fehlgeschlagen!");
                 }
