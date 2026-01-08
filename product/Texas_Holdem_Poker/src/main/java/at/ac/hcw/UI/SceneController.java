@@ -1,5 +1,6 @@
 package at.ac.hcw.UI;
 
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,6 +13,7 @@ public class SceneController {
     private Scene scene;
     private Parent root;
     private Process serverProcess;
+    private PokerClient client;
 
     public void setStage(Stage stage) {
         this.stage = stage;
@@ -57,4 +59,26 @@ public class SceneController {
     public void setServerProcess(Process serverProcess) {
         this.serverProcess = serverProcess;
     }
+
+    public void connectToServer(String serverIP, int serverPort) {
+        if (client == null) {
+            client = new PokerClient(serverIP, serverPort);
+        }
+
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                boolean connected = client.connect();
+                if (connected) {
+                    System.out.println("Erfolgreich verbunden!");
+                    // Optional: switch to Lobby oder Table
+                } else {
+                    System.out.println("Verbindung fehlgeschlagen!");
+                }
+                return null;
+            }
+        };
+        new Thread(task).start();
+    }
+
 }

@@ -42,29 +42,25 @@ public class HostLobbyController {
         App.getSceneController().setServerProcess(serverProcess);
 
         String ipv4 = null;
-        try {
-            Enumeration<NetworkInterface> interfaces =
-                    NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface ni = interfaces.nextElement();
-                if (!ni.isUp() || ni.isLoopback()) continue;
-                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+        Enumeration<NetworkInterface> interfaces =
+                NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface ni = interfaces.nextElement();
+            if (!ni.isUp() || ni.isLoopback()) continue;
+            Enumeration<InetAddress> addresses = ni.getInetAddresses();
 
-                while (addresses.hasMoreElements()) {
-                    InetAddress addr = addresses.nextElement();
+            while (addresses.hasMoreElements()) {
+                InetAddress addr = addresses.nextElement();
 
-                    if (addr instanceof Inet4Address) {
-                        ipv4 = addr.getHostAddress();
-                        System.out.println("Host Ip Address: " + ipv4);
-                        break;
-                    }
+                if (addr instanceof Inet4Address) {
+                    ipv4 = addr.getHostAddress();
+                    System.out.println("Host Ip Address: " + ipv4);
+                    break;
                 }
-                if (ipv4 != null) break;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (ipv4 != null) break;
         }
-        //Kann ich von hier
+        App.getSceneController().connectToServer(ipv4, 5000);
 
     }
 
