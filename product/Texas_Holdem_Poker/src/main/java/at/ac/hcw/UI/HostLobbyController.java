@@ -19,6 +19,7 @@ public class HostLobbyController {
     @FXML private TextField startingCashField;
     @FXML
     private void onLobbyCloseClicked() throws IOException {
+        App.getSceneController().stopServer();
         App.getSceneController().switchToMainMenu();
     }
     @FXML
