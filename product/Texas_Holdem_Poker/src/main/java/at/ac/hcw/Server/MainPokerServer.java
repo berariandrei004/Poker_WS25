@@ -10,11 +10,6 @@ public class MainPokerServer {
     private static final int DEFAULT_PORT = 5000;
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Usage: java -jar server.jar <maxClients> [port]");
-            return;
-        }
-
         int maxClients;
         int port = DEFAULT_PORT;
 
