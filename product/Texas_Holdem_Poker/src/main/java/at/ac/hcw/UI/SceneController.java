@@ -71,7 +71,7 @@ public class SceneController {
         return client;
     }
 
-    public void connectToServer(String serverIP, int serverPort) {
+    public void connectToServer(String serverIP, int serverPort, String playerName) {
         if (client == null) {
             client = new PokerClient(serverIP, serverPort);
         }

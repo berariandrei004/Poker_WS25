@@ -3,11 +3,15 @@ package at.ac.hcw.Server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainPokerServer {
     private static final int DEFAULT_PORT = 5000;
+    private static final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) {
         int maxClients;
@@ -40,12 +44,25 @@ public class MainPokerServer {
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                threadPool.execute(new ClientHandler(clientSocket));
+                ClientHandler handler = new ClientHandler(clientSocket);
+                // Client zur Liste hinzufügen
+                clients.add(handler);
+                threadPool.execute(handler);
             }
 
         } catch (IOException e) {
             System.out.println("Server gestoppt.");
             System.out.println(e);
         }
+    }
+    public static void broadcast(String message) {
+        synchronized (clients) {
+            for (ClientHandler client : clients) {
+                client.sendMessage(message);
+            }
+        }
+    }
+    public static void removeClient(ClientHandler client) {
+        clients.remove(client);
     }
 }

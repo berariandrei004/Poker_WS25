@@ -4,33 +4,39 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="at.ac.hcw.UI.JoinMenuController">
-    <VBox alignment="CENTER" maxWidth="350.0" prefHeight="150.0" prefWidth="350.0"
-          style="-fx-background-color: #40A0FA;">
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.UI.JoinMenuController">
+    <VBox alignment="CENTER" maxWidth="400.0" prefHeight="150.0" prefWidth="400.0" style="-fx-background-color: #40A0FA;">
         <children>
           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lobby-ID eingeben:">
               <font>
-                  <Font size="35.0"/>
+                  <Font size="35.0" />
               </font>
           </Text>
-          <TextField fx:id="joinCodeField" alignment="CENTER" promptText="Hier eingeben:"
-                     style="-fx-background-color: #40A0FA;">
+          <TextField fx:id="joinCodeField" alignment="CENTER" promptText="Hier eingeben:" style="-fx-background-color: #40A0FA;">
               <font>
-                  <Font size="30.0"/>
+                  <Font size="30.0" />
               </font>
           </TextField>
+         <Text layoutX="33.0" layoutY="67.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Spielernamen eingeben:">
+            <font>
+               <Font size="35.0" />
+            </font>
+         </Text>
+         <TextField fx:id="playerNameField" alignment="CENTER" layoutX="10.0" layoutY="57.0" promptText="Hier eingeben:" style="-fx-background-color: #40A0FA;">
+            <font>
+               <Font size="30.0" />
+            </font>
+         </TextField>
         </children>
     </VBox>
     <Button mnemonicParsing="false" onAction="#onJoinButtonClicked" prefHeight="80.0" prefWidth="350.0" text="Lobby beitreten">
         <font>
-            <Font size="35.0"/>
+            <Font size="35.0" />
         </font>
     </Button>
     <Button mnemonicParsing="false" onAction="#onBackClicked" prefHeight="80.0" prefWidth="350.0" text="Zurück">
         <font>
-            <Font size="35.0"/>
+            <Font size="35.0" />
         </font>
     </Button>
 </VBox>

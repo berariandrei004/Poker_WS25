@@ -9,24 +9,33 @@ import java.net.Socket;
 public class ClientHandler implements Runnable {
 
     private Socket socket;
+    private String playerName;
+    private PrintWriter out;
+    private BufferedReader in;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
+    public void sendMessage(String message) {
+        if (out != null) {
+            out.println(message);
+        }
+    }
 
     @Override
     public void run() {
-        try (
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
-        ) {
+        try {
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
             out.println("Willkommen! Verbindung hergestellt.");
 
             String message;
             while ((message = in.readLine()) != null) {
                 System.out.println("Client sagt: " + message);
-                out.println("Echo: " + message);
+                if (message.startsWith("PlayerName:")) {
+                    int colonIndex = message.indexOf(":");
+                    this.playerName = message.substring(colonIndex + 1);
+                }
             }
 
         } catch (IOException e) {
