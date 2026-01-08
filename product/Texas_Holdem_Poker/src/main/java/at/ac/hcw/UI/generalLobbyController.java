@@ -6,7 +6,7 @@ import javafx.scene.control.TextField;
 
 import java.io.IOException;
 
-public class ClientLobbyController {
+public class generalLobbyController {
     @FXML private Label playerCount;
     @FXML private TextField bigBlindField;
     @FXML private TextField smallBlindField;

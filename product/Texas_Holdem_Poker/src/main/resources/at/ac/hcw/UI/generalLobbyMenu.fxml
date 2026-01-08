@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.UI.generalLobbyController">
+    <children>
+        <Label text="Poker Player Lobby">
+            <font>
+                <Font name="System Bold" size="40.0" />
+            </font>
+        </Label>
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+         <children>
+              <VBox alignment="CENTER" maxWidth="450.0" prefHeight="150.0" prefWidth="450.0" spacing="20.0" style="-fx-background-color: #40A0FA;">
+                  <children>
+                      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lobby-ID:">
+                          <font>
+                              <Font size="35.0" />
+                          </font>
+                      </Text>
+                      <TextField fx:id="joinCodeShowField" alignment="CENTER" editable="false" promptText="XXXXXXXX" style="-fx-background-color: #40A0FA;" text="testText">
+                          <font>
+                              <Font size="30.0" />
+                          </font>
+                      </TextField>
+      
+                      <!-- Spieleranzahl -->
+                      <HBox alignment="CENTER" spacing="10">
+                          <Label alignment="CENTER" prefWidth="150" text="Spieleranzahl:">
+                              <font>
+                                  <Font size="20.0" />
+                              </font>
+                     </Label>
+                     <Label fx:id="playerCount" alignment="CENTER" layoutX="160.0" layoutY="10.0" prefWidth="50.0" text="2">
+                        <font>
+                           <Font size="25.0" />
+                        </font>
+                     </Label>
+                      </HBox>
+      
+                      <HBox alignment="CENTER" spacing="10">
+                          <Label alignment="CENTER" prefWidth="150" text="Big Blind:">
+                              <font>
+                                  <Font size="20.0" />
+                              </font>
+                     </Label>
+                          <TextField fx:id="bigBlindField" editable="false" promptText="z.B. 20">
+                              <font>
+                                  <Font size="18.0" />
+                              </font>
+                     </TextField>
+                      </HBox>
+      
+                      <!-- Blinds -->
+                      <HBox alignment="CENTER" spacing="10">
+                          <Label alignment="CENTER" prefWidth="150" text="Small Blind:">
+                              <font>
+                                  <Font size="20.0" />
+                              </font>
+                     </Label>
+                          <TextField fx:id="smallBlindField" editable="false" promptText="z.B. 10">
+                              <font>
+                                  <Font size="18.0" />
+                              </font>
+                     </TextField>
+                      </HBox>
+      
+                      <!-- Startkapital -->
+                      <HBox alignment="CENTER" spacing="10">
+                          <Label alignment="CENTER" prefWidth="150" text="Startkapital:">
+                              <font>
+                                  <Font size="20.0" />
+                              </font>
+                     </Label>
+                          <TextField fx:id="startingCashField" editable="false" promptText="z.B. 1000">
+                              <font>
+                                  <Font size="18.0" />
+                              </font>
+                     </TextField>
+                      </HBox>
+                      <Button mnemonicParsing="false" onAction="#onLobbyLeftClicked" prefWidth="220.0" text="Lobby verlassen">
+                          <font>
+                              <Font size="25.0" />
+                          </font>
+                      </Button>
+                  </children>
+                  <padding>
+                      <Insets bottom="25.0" />
+                  </padding>
+              </VBox>
+             <VBox alignment="CENTER" maxWidth="450.0" prefHeight="150.0" prefWidth="250.0" spacing="20.0" style="-fx-background-color: #40A0FA;">
+                 <Label text="Spieler in der Lobby:" style="-fx-font-size: 25;" />
+                 <ListView fx:id="playerListView" prefWidth="300" prefHeight="400" />
+             </VBox>
+         </children>
+      </HBox>
+    </children>
+</VBox>
