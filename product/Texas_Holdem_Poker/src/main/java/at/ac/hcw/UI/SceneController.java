@@ -67,6 +67,10 @@ public class SceneController {
         this.serverProcess = serverProcess;
     }
 
+    public PokerClient getClient() {
+        return client;
+    }
+
     public void connectToServer(String serverIP, int serverPort) {
         if (client == null) {
             client = new PokerClient(serverIP, serverPort);

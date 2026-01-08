@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 
 import java.io.IOException;
 
-public class generalLobbyController {
+public class GeneralLobbyController {
     @FXML private Label playerCount;
     @FXML private TextField bigBlindField;
     @FXML private TextField smallBlindField;
@@ -24,6 +24,8 @@ public class generalLobbyController {
     private void onLobbyLeftClicked() throws IOException {
         App.getSceneController().switchToMainMenu();
         App.getSceneController().stopServer();
+        PokerClient client = App.getSceneController().getClient();
+        client.disconnect();
     }
     @FXML
     public void initialize() {

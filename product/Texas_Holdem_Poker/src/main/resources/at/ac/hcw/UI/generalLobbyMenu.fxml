@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.UI.generalLobbyController">
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.ac.hcw.UI.GeneralLobbyController">
     <children>
         <Label text="Poker Player Lobby">
             <font>
