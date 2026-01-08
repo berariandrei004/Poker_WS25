@@ -31,7 +31,7 @@ public class JoinCodeHandler {
             char secondChar = (char) ('A' + secondCharNumber);
             joinCode.append(firstChar).append(secondChar);
         }
-        //System.out.println(joinCode.toString());
+//        System.out.println(joinCode.toString()); //dominik desktop pc code HKGMAAHS
         return joinCode.toString();
     }
 }

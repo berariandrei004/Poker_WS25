@@ -20,7 +20,7 @@ public class App extends Application {
     }
     @SuppressWarnings("unused")
     public static void main(String[] args) {
-//        JoinCodeHandler.IPv4ToJoinCode("192.168.0.1");
+        JoinCodeHandler.IPv4ToJoinCode("192.168.0.200");
 //        JoinCodeHandler.joinCodeToIPv4("FRFRAAAB");
         launch();
     }

@@ -68,7 +68,12 @@
                      <Font size="18.0" />
                   </font></TextField>
                </HBox>
-              <Button mnemonicParsing="false" onAction="#onStartGameClicked" prefWidth="220.0" text="Spiel beginnen">
+            <Button mnemonicParsing="false" onAction="#onStartGameClicked" prefWidth="220.0" text="Spiel beginnen">
+                <font>
+                    <Font size="25.0" />
+                </font>
+            </Button>
+              <Button mnemonicParsing="false" onAction="#onStartServerClicked" prefWidth="220.0" text="Server starten">
                   <font>
                       <Font size="25.0" />
                   </font>
