@@ -30,8 +30,9 @@ public class ClientHandler implements Runnable {
             }
 
         } catch (IOException e) {
-            System.out.println("Client getrennt.");
+            System.out.println("Client verbindung abgebrochen");
         } finally {
+            System.out.println("Client hat sich getrennt.");
             try {
                 socket.close();
             } catch (IOException e) {

@@ -35,6 +35,7 @@ public class PokerClient {
         return in.readLine();
     }
     public void disconnect() throws IOException {
+        System.out.println("Client disconnects");
         socket.close();
     }
 }
