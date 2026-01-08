@@ -12,7 +12,7 @@ import java.util.Enumeration;
 
 public class HostLobbyController {
     private PokerClient client;
-    private Process serverProcess;
+    @FXML private TextField joinCodeField;
     @FXML private Spinner<Integer> playerCountSpinner;
     @FXML private TextField bigBlindField;
     @FXML private TextField smallBlindField;
@@ -39,7 +39,7 @@ public class HostLobbyController {
         );
 
         builder.inheritIO(); // Shows server logs in your current console
-        serverProcess = builder.start();
+        Process serverProcess = builder.start();
         App.getSceneController().setServerProcess(serverProcess);
 
         String ipv4 = null;
@@ -61,6 +61,7 @@ public class HostLobbyController {
             }
             if (ipv4 != null) break;
         }
+        joinCodeField.setText(JoinCodeHandler.IPv4ToJoinCode(ipv4));
         App.getSceneController().connectToServer(ipv4, 5000);
 
     }
