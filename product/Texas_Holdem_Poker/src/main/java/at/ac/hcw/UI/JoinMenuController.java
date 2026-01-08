@@ -20,7 +20,14 @@ public class JoinMenuController {
         }
         String serverIP = JoinCodeHandler.joinCodeToIPv4(joinCode);
         int serverPort = 5000; // fester Port
+        connectToServer(serverIP, serverPort);
+    }
+    @FXML
+    private void onBackClicked() throws IOException {
+        App.getSceneController().switchToMainMenu();
+    }
 
+    public void connectToServer(String serverIP, Integer serverPort) {
         client = new PokerClient(serverIP, serverPort);
 
         // Verbindung im Hintergrund-Thread, damit UI nicht einfriert
@@ -38,9 +45,5 @@ public class JoinMenuController {
             }
         };
         new Thread(task).start();
-    }
-    @FXML
-    private void onBackClicked() throws IOException {
-        App.getSceneController().switchToMainMenu();
     }
 }
