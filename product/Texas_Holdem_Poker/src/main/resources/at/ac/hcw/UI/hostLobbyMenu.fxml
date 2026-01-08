@@ -14,12 +14,12 @@
       </Label>
         <VBox alignment="CENTER" maxWidth="450.0" prefHeight="150.0" prefWidth="450.0" spacing="20.0" style="-fx-background-color: #40A0FA;">
             <children>
-                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lobby-ID:">
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Spielernamen eingeben:">
                     <font>
                         <Font size="35.0" />
                     </font>
                 </Text>
-                <TextField fx:id="joinCodeField" alignment="CENTER" editable="false" promptText="XXXXXXXX" style="-fx-background-color: #40A0FA;" text="testText">
+                <TextField fx:id="hostPlayerNameField" alignment="CENTER" layoutX="10.0" layoutY="57.0" promptText="Hier eingeben:" style="-fx-background-color: #40A0FA;">
                     <font>
                         <Font size="30.0" />
                     </font>

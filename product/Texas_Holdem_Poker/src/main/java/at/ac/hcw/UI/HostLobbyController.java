@@ -12,7 +12,7 @@ import java.util.Enumeration;
 
 public class HostLobbyController {
     private PokerClient client;
-    @FXML private TextField joinCodeField;
+    @FXML private TextField hostPlayerNameField;
     @FXML private Spinner<Integer> playerCountSpinner;
     @FXML private TextField bigBlindField;
     @FXML private TextField smallBlindField;
@@ -27,6 +27,10 @@ public class HostLobbyController {
     }
     @FXML
     private void onStartServerClicked() throws IOException {
+        if (hostPlayerNameField.getText() == null || hostPlayerNameField.getText().length() < 3) {
+            System.out.println("Spielername benötigt mindestens drei Zeichen!");
+            return;
+        }
         int maxClients = playerCountSpinner.getValue();
 
         ProcessBuilder builder = new ProcessBuilder(
@@ -60,8 +64,7 @@ public class HostLobbyController {
             }
             if (ipv4 != null) break;
         }
-        joinCodeField.setText(JoinCodeHandler.IPv4ToJoinCode(ipv4));
-        App.getSceneController().connectToServer(ipv4, 5000);
+        App.getSceneController().connectToServer(ipv4, 5000, hostPlayerNameField.getText());
 
     }
 
