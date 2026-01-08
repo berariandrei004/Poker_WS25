@@ -1,9 +1,6 @@
-package at.ac.hcw;
+package at.ac.hcw.UI;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
 
@@ -14,6 +11,12 @@ public class App extends Application {
         sceneController = new SceneController();
         sceneController.setStage(stage);
         sceneController.switchToMainMenu();
+
+        stage.setOnCloseRequest(event -> {
+            System.out.println("App wird geschlossen...");
+            sceneController.stopServer();
+            //System.out.println("Server geschlossen?");
+        });
     }
     public static SceneController getSceneController() {
         return sceneController;

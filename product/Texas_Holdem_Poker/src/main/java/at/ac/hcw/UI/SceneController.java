@@ -1,24 +1,30 @@
-package at.ac.hcw;
+package at.ac.hcw.UI;
 
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 
 public class SceneController {
     private Stage stage;
     private Scene scene;
     private Parent root;
+    private Process serverProcess;
 
     public void setStage(Stage stage) {
         this.stage = stage;
         this.stage.setTitle("Texas Holdem Poker");
     }
+
+    public void stopServer() {
+        if (serverProcess != null && serverProcess.isAlive()) {
+            System.out.println("Server wird beendet...");
+            serverProcess.destroy();
+        }
+    }
+
     public void switchToMainMenu() throws IOException {
         root = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
         scene = new Scene(root);
@@ -46,5 +52,9 @@ public class SceneController {
         Scene scene = new Scene(root, 900, 600);
         stage.setScene(scene);
         stage.show();
+    }
+
+    public void setServerProcess(Process serverProcess) {
+        this.serverProcess = serverProcess;
     }
 }

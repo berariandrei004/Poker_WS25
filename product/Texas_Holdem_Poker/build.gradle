@@ -32,7 +32,7 @@ run {
 }
 
 application {
-    mainClass  = 'at.ac.hcw.App'
+    mainClass  = 'at.ac.hcw.UI.App'
 }
 
 allprojects {

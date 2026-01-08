@@ -1,20 +1,17 @@
-package at.ac.hcw;
+package at.ac.hcw.UI;
 
 import javafx.animation.*;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;

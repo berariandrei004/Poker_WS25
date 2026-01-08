@@ -38,16 +38,19 @@ public class MainPokerServer {
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
 
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client verbunden: "
-                        + clientSocket.getInetAddress());
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Server wird beendet...");
+                threadPool.shutdownNow();
+            }));
 
+            while (!Thread.currentThread().isInterrupted()) {
+                Socket clientSocket = serverSocket.accept();
                 threadPool.execute(new ClientHandler(clientSocket));
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Server gestoppt.");
+            System.out.println(e);
         }
     }
 }

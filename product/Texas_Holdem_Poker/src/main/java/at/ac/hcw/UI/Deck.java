@@ -1,4 +1,4 @@
-package at.ac.hcw;
+package at.ac.hcw.UI;
 
 import java.util.*;
 

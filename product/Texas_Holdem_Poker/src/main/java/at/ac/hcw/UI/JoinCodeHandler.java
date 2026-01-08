@@ -1,4 +1,4 @@
-package at.ac.hcw;
+package at.ac.hcw.UI;
 
 public class JoinCodeHandler {
     public static String joinCodeToIPv4(String joinCode) {

@@ -6,7 +6,7 @@
 
 <VBox alignment="CENTER" prefHeight="800.0" prefWidth="1600.0" spacing="30.0" style="-fx-background-color: lightblue;"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="at.ac.hcw.JoinMenuController">
+      fx:controller="at.ac.hcw.UI.JoinMenuController">
     <VBox alignment="CENTER" maxWidth="350.0" prefHeight="150.0" prefWidth="350.0"
           style="-fx-background-color: #40A0FA;">
         <children>
