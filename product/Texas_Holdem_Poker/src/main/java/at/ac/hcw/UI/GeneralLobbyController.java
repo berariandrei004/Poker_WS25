@@ -11,6 +11,7 @@ import javafx.scene.control.TextField;
 import java.io.IOException;
 
 public class GeneralLobbyController {
+    @FXML private TextField joinCodeShowField;
     @FXML private Label playerCount;
     @FXML private TextField bigBlindField;
     @FXML private TextField smallBlindField;
@@ -30,6 +31,9 @@ public class GeneralLobbyController {
     @FXML
     public void initialize() {
         playerListView.setItems(players);
+    }
+    public void setLobbyId(String lobbyId) {
+        Platform.runLater(() -> joinCodeShowField.setText(lobbyId));
     }
     public void addPlayer(String playerName) {
         Platform.runLater(() -> players.add(playerName));

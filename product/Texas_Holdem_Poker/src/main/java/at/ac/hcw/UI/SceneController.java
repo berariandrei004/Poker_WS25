@@ -89,6 +89,14 @@ public class SceneController {
                             e.printStackTrace();
                         }
                     });
+                    String message = client.receiveMessage();
+                    System.out.println("Server wrote: " + message);
+                    if (message.startsWith("LobbyId:")) {
+                        int colonIndex = message.indexOf(":");
+                        String lobbyId = message.substring(colonIndex + 1);
+                        GeneralLobbyController lobbyController = new GeneralLobbyController();
+                        lobbyController.setLobbyId(lobbyId);
+                    }
                 } else {
                     System.out.println("Verbindung fehlgeschlagen!");
                 }

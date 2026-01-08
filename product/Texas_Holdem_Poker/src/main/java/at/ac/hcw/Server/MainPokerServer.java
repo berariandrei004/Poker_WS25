@@ -12,16 +12,17 @@ import java.util.concurrent.Executors;
 public class MainPokerServer {
     private static final int DEFAULT_PORT = 5000;
     private static final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
-
+    private static String lobbyId;
     public static void main(String[] args) {
         int maxClients;
         int port = DEFAULT_PORT;
+
 
         try {
             maxClients = Integer.parseInt(args[0]);
 
             if (args.length >= 2) {
-                port = Integer.parseInt(args[1]);
+                lobbyId = args[1];
             }
 
         } catch (NumberFormatException e) {
@@ -64,5 +65,8 @@ public class MainPokerServer {
     }
     public static void removeClient(ClientHandler client) {
         clients.remove(client);
+    }
+    public static String getLobbyId() {
+        return lobbyId;
     }
 }

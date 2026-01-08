@@ -32,19 +32,6 @@ public class HostLobbyController {
             return;
         }
         int maxClients = playerCountSpinner.getValue();
-
-        ProcessBuilder builder = new ProcessBuilder(
-                "java",
-                "-cp",
-                System.getProperty("java.class.path"), // 1. Uses the current project's classpath
-                "at.ac.hcw.Server.MainPokerServer",    // 2. Fully qualified class name
-                String.valueOf(maxClients)             // 3. Arguments
-        );
-
-        builder.inheritIO(); // Shows server logs in your current console
-        Process serverProcess = builder.start();
-        App.getSceneController().setServerProcess(serverProcess);
-
         String ipv4 = null;
         Enumeration<NetworkInterface> interfaces =
                 NetworkInterface.getNetworkInterfaces();
@@ -64,6 +51,21 @@ public class HostLobbyController {
             }
             if (ipv4 != null) break;
         }
+        String joinCodeId = JoinCodeHandler.IPv4ToJoinCode(ipv4);
+        ProcessBuilder builder = new ProcessBuilder(
+                "java",
+                "-cp",
+                System.getProperty("java.class.path"), // 1. Uses the current project's classpath
+                "at.ac.hcw.Server.MainPokerServer",    // 2. Fully qualified class name
+                String.valueOf(maxClients),             // 3. Arguments
+                joinCodeId
+        );
+
+        builder.inheritIO(); // Shows server logs in your current console
+        Process serverProcess = builder.start();
+        App.getSceneController().setServerProcess(serverProcess);
+
+
         App.getSceneController().connectToServer(ipv4, 5000, hostPlayerNameField.getText());
 
     }

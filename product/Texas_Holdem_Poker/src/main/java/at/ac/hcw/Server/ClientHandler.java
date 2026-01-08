@@ -19,6 +19,7 @@ public class ClientHandler implements Runnable {
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
+            System.out.println("Ich server, sende:" + message);
         }
     }
 
@@ -27,8 +28,7 @@ public class ClientHandler implements Runnable {
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-            out.println("Willkommen! Verbindung hergestellt.");
-
+            sendMessage("LobbyId:" + MainPokerServer.getLobbyId());
             String message;
             while ((message = in.readLine()) != null) {
                 System.out.println("Client sagt: " + message);
