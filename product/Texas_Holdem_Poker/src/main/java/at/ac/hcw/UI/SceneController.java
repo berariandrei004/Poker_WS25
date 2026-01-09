@@ -16,6 +16,8 @@ public class SceneController {
     private Process serverProcess;
     private PokerClient client;
 
+    private ServerMessageListener messageListener;
+
     public void setStage(Stage stage) {
         this.stage = stage;
         this.stage.setTitle("Texas Holdem Poker");
@@ -28,7 +30,12 @@ public class SceneController {
         }
     }
     public void switchToGeneralLobbyMenu() throws IOException {
-        root = FXMLLoader.load(getClass().getResource("generalLobbyMenu.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("generalLobbyMenu.fxml"));
+        Parent root = loader.load();
+
+        GeneralLobbyController controller = loader.getController();
+        setMessageListener(controller);
+
         scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
@@ -71,39 +78,48 @@ public class SceneController {
         return client;
     }
 
+    public void setMessageListener(ServerMessageListener listener) {
+        this.messageListener = listener;
+    }
+    private void handleServerMessage(String message) {
+        if (messageListener != null) {
+            messageListener.onServerMessage(message);
+        }
+    }
+
     public void connectToServer(String serverIP, int serverPort, String playerName) {
         if (client == null) {
             client = new PokerClient(serverIP, serverPort);
         }
 
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws IOException {
-                boolean connected = client.connect();
-                if (connected) {
-                    System.out.println("Erfolgreich verbunden!!!");
-                    Platform.runLater(() -> {
-                        try {
-                            switchToGeneralLobbyMenu();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                    String message = client.receiveMessage();
-                    System.out.println("Server wrote: " + message);
-                    if (message.startsWith("LobbyId:")) {
-                        int colonIndex = message.indexOf(":");
-                        String lobbyId = message.substring(colonIndex + 1);
-                        GeneralLobbyController lobbyController = new GeneralLobbyController();
-                        lobbyController.setLobbyId(lobbyId);
-                    }
-                } else {
-                    System.out.println("Verbindung fehlgeschlagen!");
+        new Thread(() -> {
+            try {
+                if (!client.connect()) {
+                    System.out.println("Verbindung fehlgeschlagen");
+                    return;
                 }
-                return null;
+
+                System.out.println("Erfolgreich verbunden");
+
+                Platform.runLater(() -> {
+                    try {
+                        switchToGeneralLobbyMenu();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                // DAUERHAFTES LISTEN
+                String message;
+                while ((message = client.receiveMessage()) != null) {
+                    String finalMessage = message;
+                    Platform.runLater(() -> handleServerMessage(finalMessage));
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        };
-        new Thread(task).start();
+        }).start();
     }
 
 }

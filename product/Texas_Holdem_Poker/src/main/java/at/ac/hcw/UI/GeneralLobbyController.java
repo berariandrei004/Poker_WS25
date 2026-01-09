@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 
 import java.io.IOException;
 
-public class GeneralLobbyController {
+public class GeneralLobbyController implements ServerMessageListener{
     @FXML private TextField joinCodeShowField;
     @FXML private Label playerCount;
     @FXML private TextField bigBlindField;
@@ -40,5 +40,18 @@ public class GeneralLobbyController {
     }
     public void removePlayer(String playerName) {
         Platform.runLater(() -> players.remove(playerName));
+    }
+    @Override
+    public void onServerMessage(String message) {
+
+        if (message.startsWith("LobbyId:")) {
+            joinCodeShowField.setText(message.split(":", 2)[1]);
+
+        } else if (message.startsWith("PlayerJoined:")) {
+            playerListView.getItems().add(message.split(":", 2)[1]);
+
+        } else if (message.startsWith("PlayerLeft:")) {
+            playerListView.getItems().remove(message.split(":", 2)[1]);
+        }
     }
 }
