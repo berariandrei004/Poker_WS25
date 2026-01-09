@@ -33,6 +33,9 @@ public class HostLobbyController {
             return;
         }
         int maxClients = playerCountSpinner.getValue();
+        String bigBlind = bigBlindField.getText();
+        String smallBlind = smallBlindField.getText();
+        String startingCash = startingCashField.getText();
         String ipv4 = getLocalLanIPv4();
 
         if (ipv4 == null) {
@@ -46,7 +49,10 @@ public class HostLobbyController {
                 System.getProperty("java.class.path"), // 1. Uses the current project's classpath
                 "at.ac.hcw.Server.MainPokerServer",    // 2. Fully qualified class name
                 String.valueOf(maxClients),             // 3. Arguments
-                joinCodeId
+                joinCodeId,
+                bigBlind,
+                smallBlind,
+                startingCash
         );
 
         builder.inheritIO(); // Shows server logs in your current console

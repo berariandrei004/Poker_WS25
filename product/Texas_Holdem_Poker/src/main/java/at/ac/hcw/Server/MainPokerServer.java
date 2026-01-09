@@ -13,6 +13,10 @@ public class MainPokerServer {
     private static final int DEFAULT_PORT = 5000;
     private static final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
     private static String lobbyId;
+    private static String bigBlind;
+    private static String smallBlind;
+    private static String startingCash;
+
     public static void main(String[] args) {
         int maxClients;
         int port = DEFAULT_PORT;
@@ -20,10 +24,10 @@ public class MainPokerServer {
 
         try {
             maxClients = Integer.parseInt(args[0]);
-
-            if (args.length >= 2) {
-                lobbyId = args[1];
-            }
+            lobbyId = args[1];
+            bigBlind = args[2];
+            smallBlind = args[3];
+            startingCash = args[4];
 
         } catch (NumberFormatException e) {
             System.out.println("Ungültige Argumente!");
@@ -68,6 +72,15 @@ public class MainPokerServer {
     }
     public static String getLobbyId() {
         return lobbyId;
+    }
+    public static String getBigBlind() {
+        return bigBlind;
+    }
+    public static String getSmallBlind() {
+        return smallBlind;
+    }
+    public static String getStartingCash() {
+        return startingCash;
     }
     public static List<ClientHandler> getClients() {
         return clients;

@@ -44,8 +44,28 @@ public class GeneralLobbyController implements ServerMessageListener{
     @Override
     public void onServerMessage(String message) {
 
-        if (message.startsWith("LobbyId:")) {
-            joinCodeShowField.setText(message.split(":", 2)[1]);
+        if (message.startsWith("LobbySettings:")) {
+            String payload = message.split(":", 2)[1];
+
+            // Mit Semikolon trennen
+            String[] parts = payload.split(";");
+
+            if (parts.length == 4) {
+                String lobbyId = parts[0];
+                String bigBlind = parts[1];
+                String smallBlind = parts[2];
+                String startingCash = parts[3];
+
+                // GUI aktualisieren (Platform.runLater falls notwendig)
+                Platform.runLater(() -> {
+                    joinCodeShowField.setText(lobbyId);
+                    bigBlindField.setText(bigBlind);
+                    smallBlindField.setText(smallBlind);
+                    startingCashField.setText(startingCash);
+                });
+            } else {
+                System.out.println("Fehler: LobbySettings Nachricht ungültig: " + message);
+            }
 
         } else if (message.startsWith("PlayerList:")) {
             String listStr = message.substring("PlayerList:".length());

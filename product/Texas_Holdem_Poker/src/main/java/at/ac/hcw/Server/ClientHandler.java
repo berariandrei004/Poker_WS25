@@ -28,7 +28,9 @@ public class ClientHandler implements Runnable {
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-            sendMessage("LobbyId:" + MainPokerServer.getLobbyId());
+            sendMessage("LobbySettings:" + MainPokerServer.getLobbyId() + ";" + MainPokerServer.getBigBlind() + ";" +
+                    MainPokerServer.getSmallBlind() + ";" + MainPokerServer.getStartingCash());
+
             String message;
             while ((message = in.readLine()) != null) {
                 System.out.println("Client sagt: " + message);

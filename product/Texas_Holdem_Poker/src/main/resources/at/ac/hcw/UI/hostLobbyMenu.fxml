@@ -63,7 +63,7 @@
                   <font>
                      <Font size="20.0" />
                   </font></Label>
-                   <TextField fx:id="startingChipsField" promptText="z.B. 1000" text="1000">
+                   <TextField fx:id="startingCashField" promptText="z.B. 1000" text="1000">
                   <font>
                      <Font size="18.0" />
                   </font></TextField>
