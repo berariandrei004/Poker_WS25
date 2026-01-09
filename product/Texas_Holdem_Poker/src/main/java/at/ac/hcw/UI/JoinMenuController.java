@@ -22,6 +22,7 @@ public class JoinMenuController {
         }
 
         String serverIP = JoinCodeHandler.joinCodeToIPv4(joinCode);
+        System.out.println("Try to join with IP: " + serverIP + " and Code: " + joinCode);
         int serverPort = 5000; // fester Port
         App.getSceneController().connectToServer(serverIP, serverPort, playerNameField.getText());
     }
