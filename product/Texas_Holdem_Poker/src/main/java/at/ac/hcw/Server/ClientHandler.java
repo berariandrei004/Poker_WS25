@@ -35,7 +35,7 @@ public class ClientHandler implements Runnable {
                 if (message.startsWith("PlayerName:")) {
                     int colonIndex = message.indexOf(":");
                     this.playerName = message.substring(colonIndex + 1);
-                    //MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
+                    MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
                     sendPlayerListToThisClient();
                 }
             }
