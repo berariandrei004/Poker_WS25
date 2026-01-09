@@ -33,30 +33,7 @@ public class HostLobbyController {
             return;
         }
         int maxClients = playerCountSpinner.getValue();
-        String ipv4 = null;
-//        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-//
-//        while (interfaces.hasMoreElements()) {
-//            NetworkInterface ni = interfaces.nextElement();
-//
-//            if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
-//
-//            Enumeration<InetAddress> addresses = ni.getInetAddresses();
-//            while (addresses.hasMoreElements()) {
-//                InetAddress addr = addresses.nextElement();
-//
-//                if (addr instanceof Inet4Address && addr.isSiteLocalAddress()) {
-//                    ipv4 = addr.getHostAddress();
-//                    break;
-//                }
-//            }
-//            if (ipv4 != null) break;
-//        }
-        try {
-            ipv4 = Inet4Address.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        String ipv4 = getLocalLanIPv4();
 
         if (ipv4 == null) {
             System.out.println("Keine gültige IPv4-Adresse gefunden!");
@@ -79,6 +56,28 @@ public class HostLobbyController {
 
         App.getSceneController().connectToServer(ipv4, 5000, hostPlayerNameField.getText());
 
+    }
+    public static String getLocalLanIPv4() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface ni = interfaces.nextElement();
+
+                if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
+
+                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof Inet4Address && addr.isSiteLocalAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
