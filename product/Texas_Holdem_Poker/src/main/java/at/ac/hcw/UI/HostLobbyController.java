@@ -66,6 +66,11 @@ public class HostLobbyController {
 
                 if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
 
+                // optional: nur physische NICs
+                if (ni.getDisplayName().contains("Virtual") || ni.getDisplayName().contains("Docker")) {
+                    continue;
+                }
+
                 Enumeration<InetAddress> addresses = ni.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();
