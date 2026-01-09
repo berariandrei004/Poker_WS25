@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 public class HostLobbyController {
@@ -33,23 +34,28 @@ public class HostLobbyController {
         }
         int maxClients = playerCountSpinner.getValue();
         String ipv4 = null;
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface ni = interfaces.nextElement();
-
-            if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
-
-            Enumeration<InetAddress> addresses = ni.getInetAddresses();
-            while (addresses.hasMoreElements()) {
-                InetAddress addr = addresses.nextElement();
-
-                if (addr instanceof Inet4Address && addr.isSiteLocalAddress()) {
-                    ipv4 = addr.getHostAddress();
-                    break;
-                }
-            }
-            if (ipv4 != null) break;
+//        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+//
+//        while (interfaces.hasMoreElements()) {
+//            NetworkInterface ni = interfaces.nextElement();
+//
+//            if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
+//
+//            Enumeration<InetAddress> addresses = ni.getInetAddresses();
+//            while (addresses.hasMoreElements()) {
+//                InetAddress addr = addresses.nextElement();
+//
+//                if (addr instanceof Inet4Address && addr.isSiteLocalAddress()) {
+//                    ipv4 = addr.getHostAddress();
+//                    break;
+//                }
+//            }
+//            if (ipv4 != null) break;
+//        }
+        try {
+            ipv4 = Inet4Address.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
         }
 
         if (ipv4 == null) {
