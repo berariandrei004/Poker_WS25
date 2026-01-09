@@ -33,23 +33,28 @@ public class HostLobbyController {
         }
         int maxClients = playerCountSpinner.getValue();
         String ipv4 = null;
-        Enumeration<NetworkInterface> interfaces =
-                NetworkInterface.getNetworkInterfaces();
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
         while (interfaces.hasMoreElements()) {
             NetworkInterface ni = interfaces.nextElement();
-            if (!ni.isUp() || ni.isLoopback()) continue;
-            Enumeration<InetAddress> addresses = ni.getInetAddresses();
 
+            if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
+
+            Enumeration<InetAddress> addresses = ni.getInetAddresses();
             while (addresses.hasMoreElements()) {
                 InetAddress addr = addresses.nextElement();
 
-                if (addr instanceof Inet4Address) {
+                if (addr instanceof Inet4Address && addr.isSiteLocalAddress()) {
                     ipv4 = addr.getHostAddress();
-                    System.out.println("Host Ip Address: " + ipv4);
                     break;
                 }
             }
             if (ipv4 != null) break;
+        }
+
+        if (ipv4 == null) {
+            System.out.println("Keine gültige IPv4-Adresse gefunden!");
+            return;
         }
         String joinCodeId = JoinCodeHandler.IPv4ToJoinCode(ipv4);
         ProcessBuilder builder = new ProcessBuilder(
