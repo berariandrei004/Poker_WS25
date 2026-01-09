@@ -100,6 +100,7 @@ public class SceneController {
                 }
 
                 System.out.println("Erfolgreich verbunden");
+                client.sendMessage("PlayerName:" + playerName);
 
                 Platform.runLater(() -> {
                     try {

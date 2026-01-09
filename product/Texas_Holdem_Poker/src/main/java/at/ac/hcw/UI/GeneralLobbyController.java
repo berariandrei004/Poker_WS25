@@ -48,7 +48,11 @@ public class GeneralLobbyController implements ServerMessageListener{
             joinCodeShowField.setText(message.split(":", 2)[1]);
 
         } else if (message.startsWith("PlayerJoined:")) {
-            playerListView.getItems().add(message.split(":", 2)[1]);
+            String newPlayer = message.split(":", 2)[1];
+            // check if player name is already in list
+            if (!playerListView.getItems().contains(newPlayer)) {
+                playerListView.getItems().add(newPlayer);
+            }
 
         } else if (message.startsWith("PlayerLeft:")) {
             playerListView.getItems().remove(message.split(":", 2)[1]);
