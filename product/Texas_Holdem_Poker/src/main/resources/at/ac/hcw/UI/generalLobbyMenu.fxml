@@ -93,7 +93,7 @@
               </VBox>
              <VBox alignment="CENTER" maxWidth="450.0" prefHeight="150.0" prefWidth="250.0" spacing="20.0" style="-fx-background-color: #40A0FA;">
                  <Label text="Spieler in der Lobby:" style="-fx-font-size: 25;" />
-                 <ListView fx:id="playerListView" prefWidth="300" prefHeight="400" />
+                 <ListView fx:id="playerListView" prefWidth="300" prefHeight="400" style="-fx-font-size: 26px;"/>
              </VBox>
          </children>
       </HBox>
