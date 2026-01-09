@@ -35,7 +35,8 @@ public class ClientHandler implements Runnable {
                 if (message.startsWith("PlayerName:")) {
                     int colonIndex = message.indexOf(":");
                     this.playerName = message.substring(colonIndex + 1);
-                    MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
+                    //MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
+                    sendPlayerListToThisClient();
                 }
             }
 
@@ -49,5 +50,21 @@ public class ClientHandler implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
+    private void sendPlayerListToThisClient() {
+        synchronized (MainPokerServer.getClients()) {
+            StringBuilder sb = new StringBuilder("PlayerList:");
+            for (ClientHandler client : MainPokerServer.getClients()) {
+                if (client.getPlayerName() != null) {
+                    sb.append(client.getPlayerName()).append(";");
+                }
+            }
+            // letztes Komma entfernen
+            if (sb.length() > 11) sb.setLength(sb.length() - 1);
+            sendMessage(sb.toString());
+        }
+    }
+    private String getPlayerName() {
+        return this.playerName;
     }
 }

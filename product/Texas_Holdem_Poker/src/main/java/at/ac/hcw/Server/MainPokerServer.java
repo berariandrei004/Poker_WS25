@@ -69,4 +69,7 @@ public class MainPokerServer {
     public static String getLobbyId() {
         return lobbyId;
     }
+    public static List<ClientHandler> getClients() {
+        return clients;
+    }
 }
