@@ -1,10 +1,15 @@
-package at.ac.hcw.Server;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class Player {
     private String name;
     private int budget;
+    private int bet;
+    private int totalBet;
     private Card[] hand = new Card[7];
     private Card[] endHand = new Card[5];
+    private boolean isAllin = false;
+    private boolean folded = false;
 
     public Player(String name, int budget) {
         this.name = name;
@@ -27,45 +32,68 @@ public class Player {
         this.budget = budget;
     }
 
+    public int getBet() {
+        return bet;
+    }
+
+    public void setBet(int bet) {
+        this.bet = bet;
+    }
+
+    public void setTotalBet(int totalBet) {
+        this.totalBet = totalBet;
+    }
+
+    public void setAllin(boolean allin) {
+        isAllin = allin;
+    }
+
+    public void setFolded(boolean folded) {
+        this.folded = folded;
+    }
+
     public Card[] getHand() {
         return hand;
+    }
+
+    public Card[] getEndHand() {
+        return endHand;
     }
 
     public void winPot(int money) {
         budget += money;
     }
 
-    public void losePot(int money) {
-        budget -= money;
+    public int getTotalBet() {
+        return totalBet;
     }
 
-    public int[] values() {
-        int[] values = new int[5];
-        int[] allValues = new int[7];
-        for (int i = 0; i < 7; i++) {
-            allValues[i] = hand[i].getNum();
-        }
-        for (int i = 0; i < 7; i++) {
-            for (int j = 0; j < 7-i; j++) {
-                if (allValues[j] > allValues[i]) {
-                    int tmp = allValues[i];
-                    allValues[j] = allValues[i];
-                    allValues[i] = tmp;
-                }
-            }
-        }
+    public boolean hasFolded() {
+        return folded;
+    }
 
-        for (int i = 0; i < 5; i++) {
-            values[i] = allValues[i];
-        }
+    public boolean isAllin() {
+        return isAllin;
+    }
 
-        return values;
+    public void addToBet(int amount) {
+        bet += amount;
+        totalBet += amount;
+    }
+
+    public void resetForNewRound() {
+        bet = 0;
+        totalBet = 0;
+        folded = false;
+        isAllin = false;
+        Arrays.fill(hand, null);
+        Arrays.fill(endHand, null);
     }
 
     public Card[] sortHand() {
-        Card[] sortedHand = new Card[7];
+        Card[] sortedHand = new Card[5];
         for (int i = 0; i < sortedHand.length; i++) {
-            sortedHand[i] = hand[i];
+            sortedHand[i] = endHand[i];
         }
         for (int i = 0; i < sortedHand.length; i++) {
             for (int j = i+1; j < sortedHand.length; j++) {
@@ -82,25 +110,103 @@ public class Player {
     public void check() {
     }
 
-    public void call(int bet) {
-        budget -= bet;
-    }
-
-    public void raise(int bet) {
-        budget -= bet;
-        System.out.println(bet);
-    }
-
-    public void fold() {
-        for (int i = 0; i < hand.length; i++) {
-            hand[i] = null;
+    public void call(int amount) {
+        if (amount >= budget) {
+            addToBet(budget);
+            budget = 0;
+            isAllin = true;
+        } else {
+            addToBet(amount);
+            budget -= amount;
         }
     }
 
+    public void raise(int amount) {
+        if (amount >= budget) {
+            allIn();
+        } else {
+            addToBet(amount);
+            budget -= amount;
+        }
+    }
+
+    public void fold() {
+        folded = true;
+    }
+
     public int allIn() {
-        int bet = budget;
+        int amount = budget;
+        addToBet(amount);
         budget = 0;
-        return budget;
+        isAllin = true;
+        return amount;
+    }
+
+    public void receiveCard(Card card, int index) {
+        hand[index] = card;
+    }
+
+    public int askAction(int toCall, Scanner scanner) {
+        while (toCall < 0) {
+            System.out.println("Negative bets aren't allowed, please enter a valid bet.");
+            toCall = scanner.nextInt();
+        }
+        if (toCall > 0) {
+            System.out.println(getName() + " do you want to call(1), fold(2), raise(3) or go all in(4)?");
+            int answer = scanner.nextInt();
+            while (answer < 1 || answer > 4) {
+                System.out.println("Choose an answer between 1 and 4.");
+                answer = scanner.nextInt();
+            }
+            if (answer == 1) {
+                call(toCall);
+                return toCall;
+            }
+            else if (answer == 2) {
+                fold();
+                return -1;
+            }
+            else if (answer == 3) {
+                System.out.println("How much do you wanna raise (at least twice the startbet)?");
+                int raise = scanner.nextInt();
+                while (raise < 2*toCall) {
+                    System.out.println("Raise has to be at least twice the bet");
+                    raise = scanner.nextInt();
+                }
+                int newBet = toCall + raise;
+                call(toCall);
+                raise(raise);
+                return newBet;
+            }
+            else {
+                return allIn();
+            }
+        }
+        else {
+            System.out.println(getName() + " do you want to check(1), fold(2), raise(3), or go all-in(4)?");
+            int answer = scanner.nextInt();
+            while (answer < 1 || answer > 4) {
+                System.out.println("Choose an answer between 1 and 4.");
+                answer = scanner.nextInt();
+            }
+            if (answer == 1) {
+                check();
+                return 0;
+            }
+            else if (answer == 2) {
+                fold();
+                return -1;
+            }
+            else if (answer == 3) {
+                System.out.println("How much do you wanna raise?");
+                int raise = scanner.nextInt();
+                raise(raise);
+                return raise;
+            }
+            else {
+                return allIn();
+            }
+        }
     }
 
     public int getPoints() {
@@ -406,7 +512,7 @@ public class Player {
 
         //Paar
         for (int i = 0; i < 6; i++) {
-            for (int j = i+1; i < hand.length; j++) {
+            for (int j = i+1; j < hand.length; j++) {
                 if (hand[i].getNum() == hand[j].getNum()) {
                     endHand[0] = hand[i];
                     endHand[1] = hand[j];

@@ -1,6 +1,4 @@
-package at.ac.hcw.Server;
-
-public class Card {
+public class Card implements Comparable<Card>{
     private int suit;
     private int num;
 
@@ -23,6 +21,11 @@ public class Card {
 
     public void setNum(int num) {
         this.num = num;
+    }
+
+    @Override
+    public int compareTo(Card other) {
+        return Integer.compare(this.num, other.num);
     }
 
     @Override
