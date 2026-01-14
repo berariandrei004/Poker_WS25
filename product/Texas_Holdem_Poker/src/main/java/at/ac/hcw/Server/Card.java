@@ -1,3 +1,5 @@
+package at.ac.hcw.Server;
+
 public class Card implements Comparable<Card>{
     private int suit;
     private int num;

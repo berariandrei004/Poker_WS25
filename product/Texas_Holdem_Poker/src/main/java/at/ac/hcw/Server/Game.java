@@ -1,3 +1,5 @@
+package at.ac.hcw.Server;
+
 import java.util.*;
 
 public class Game {
