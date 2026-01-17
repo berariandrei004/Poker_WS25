@@ -15,8 +15,15 @@ public class SceneController {
     private Parent root;
     private Process serverProcess;
     private PokerClient client;
+    PokerTableView tableView = new PokerTableView();
+
+
 
     private ServerMessageListener messageListener;
+
+    public PokerClient getClient () {
+        return client;
+    }
 
     public void setStage(Stage stage) {
         this.stage = stage;
@@ -72,10 +79,6 @@ public class SceneController {
 
     public void setServerProcess(Process serverProcess) {
         this.serverProcess = serverProcess;
-    }
-
-    public PokerClient getClient() {
-        return client;
     }
 
     public void setMessageListener(ServerMessageListener listener) {

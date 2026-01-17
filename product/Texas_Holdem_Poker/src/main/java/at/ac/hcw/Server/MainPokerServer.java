@@ -15,7 +15,8 @@ public class MainPokerServer {
     private static String lobbyId;
     private static String bigBlind;
     private static String smallBlind;
-    private static String startingCash;
+    private static int startingCash;
+    private static Game game;
 
     public static void main(String[] args) {
         int maxClients;
@@ -27,7 +28,7 @@ public class MainPokerServer {
             lobbyId = args[1];
             bigBlind = args[2];
             smallBlind = args[3];
-            startingCash = args[4];
+            startingCash = Integer.parseInt(args[4]);
 
         } catch (NumberFormatException e) {
             System.out.println("Ungültige Argumente!");
@@ -79,10 +80,13 @@ public class MainPokerServer {
     public static String getSmallBlind() {
         return smallBlind;
     }
-    public static String getStartingCash() {
+    public static int getStartingCash() {
         return startingCash;
     }
     public static List<ClientHandler> getClients() {
         return clients;
+    }
+    public static Game getGame() {
+        return game;
     }
 }

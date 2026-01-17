@@ -211,6 +211,37 @@ public class Player {
         }
     }
 
+    public synchronized String handleCommand(Player player, String cmd) {
+
+        String[] parts = cmd.split(" ");
+
+        switch (parts[0]) {
+
+            case "CALL":
+                player.call(Integer.parseInt(parts[1]));
+                return "CALL";
+
+            case "RAISE":
+                player.raise(Integer.parseInt(parts[1]));
+                return "RAISE";
+
+            case "FOLD":
+                player.fold();
+                return "FOLD";
+
+            case "ALLIN":
+                int amount = player.allIn();
+                return "ALLIN " + amount;
+
+            case "CHECK":
+                player.check();
+                return "CHECK";
+
+            default:
+                return "ERROR Unknown command";
+        }
+    }
+
     public int getPoints() {
 
         // Royal Flush

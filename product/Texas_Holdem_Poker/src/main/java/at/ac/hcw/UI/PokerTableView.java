@@ -18,10 +18,11 @@ import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 
-public class PokerTableView{
+public class PokerTableView implements ServerMessageListener{
     private Deck deck;
     private ImageView h1;
     private ImageView h2;
@@ -29,8 +30,14 @@ public class PokerTableView{
     private ImageView deckImage;
     private StackPane overlay;
     private VBox helpWindow;
+    private Button foldBtn;
+    private Button checkBtn;
+    private Button raiseBtn;
+    private Button allInBtn;
+
 
     public Parent createView() {
+        PokerClient client = App.getSceneController().getClient();
         deck = new Deck();
         BorderPane root = new BorderPane();
         animationLayer = new Pane();
@@ -89,7 +96,7 @@ public class PokerTableView{
                 null, null
         );
 
-        java.util.List<VBox> players = java.util.Arrays.asList(
+        List<VBox> players = Arrays.asList(
                 leftPlayer,
                 topPlayer,
                 rightPlayer
@@ -138,20 +145,20 @@ public class PokerTableView{
                         "-fx-background-radius: 15;"
         );
 
-        Button fold = new Button("Fold");
-        Button check = new Button("Check / Call");
-        Button raise = new Button("Raise");
-        Button allIn = new Button("All-In");
+        foldBtn = new Button("Fold");
+        checkBtn = new Button("Check / Call");
+        raiseBtn = new Button("Raise");
+        allInBtn = new Button("All-In");
 
         HBox row1 = new HBox(10);
         row1.setAlignment(Pos.CENTER_RIGHT);
-        row1.getChildren().addAll(fold, check);
+        row1.getChildren().addAll(foldBtn, checkBtn);
 
         HBox row2 = new HBox(10);
         row2.setAlignment(Pos.CENTER_RIGHT);
-        row2.getChildren().addAll(raise, allIn);
+        row2.getChildren().addAll(raiseBtn, allInBtn);
 
-        for (Button b : new Button[]{fold, check, raise, allIn}) {
+        for (Button b : new Button[]{foldBtn, checkBtn, raiseBtn, allInBtn}) {
             b.setMinWidth(120);
             b.setMinHeight(38);
             b.setStyle(
@@ -252,10 +259,18 @@ public class PokerTableView{
 
         tableArea.getChildren().setAll(ovalTable, tableContent);
 
-        fold.setOnAction(e -> System.out.println("Player folds"));
-        check.setOnAction(e -> System.out.println("Player checks / calls"));
-        allIn.setOnAction(e -> {
-            System.out.println("Player goes ALL-IN!");
+        foldBtn.setOnAction(e -> {
+            client.sendMessage("FOLD");
+        });
+        checkBtn.setOnAction(e -> {
+            client.sendMessage("CHECK");
+        });
+        raiseBtn.setOnAction(e -> {
+            int amount = (int) raiseSlider.getValue();
+            client.sendMessage("RAISE " + amount);
+        });
+        allInBtn.setOnAction(e -> {
+            client.sendMessage("ALLIN");
             setAllIn(leftPlayer, true);
             setChips(leftPlayer, 0);
 
@@ -266,6 +281,7 @@ public class PokerTableView{
             flipCard(h1, real1);
             flipCard(h2, real2);
         });
+
 
         //Scene
         animationLayer.setPickOnBounds(false);
@@ -378,45 +394,43 @@ public class PokerTableView{
         final int[] currentPlayer = {0};
         highlightPlayer(players.get(currentPlayer[0]), true);
 
-        raise.setOnAction(e -> {
-            System.out.println("Player raises to " + (int) raiseSlider.getValue());
-
-            int delay = 0;
-
-            Timeline timeline = new Timeline(
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left1, deckImage, animationLayer)),
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top1, deckImage, animationLayer)),
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right1, deckImage, animationLayer)),
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h1, deckImage, animationLayer)),
-
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left2, deckImage, animationLayer)),
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top2, deckImage, animationLayer)),
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right2, deckImage, animationLayer)),
-                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h2, deckImage, animationLayer))
-            );
-
-            timeline.play();
-
-            timeline.setOnFinished(ev -> {
-
-                PauseTransition pause = new PauseTransition(Duration.millis(400));
-
-                pause.setOnFinished(e2 -> {
-
-                    String cardA = deck.draw();
-                    String cardB = deck.draw();
-
-                    Image real1 = new Image(getClass().getResourceAsStream("/cards/" + cardA));
-                    Image real2 = new Image(getClass().getResourceAsStream("/cards/" + cardB));
-
-                    flipCard(h1, real1);
-                    flipCard(h2, real2);
-
-                });
-
-                pause.play();
-            });
-        });
+//        raise.setOnAction(e -> {
+//            int delay = 0;
+//
+//            Timeline timeline = new Timeline(
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left1, deckImage, animationLayer)),
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top1, deckImage, animationLayer)),
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right1, deckImage, animationLayer)),
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h1, deckImage, animationLayer)),
+//
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left2, deckImage, animationLayer)),
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top2, deckImage, animationLayer)),
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right2, deckImage, animationLayer)),
+//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h2, deckImage, animationLayer))
+//            );
+//
+//            timeline.play();
+//
+//            timeline.setOnFinished(ev -> {
+//
+//                PauseTransition pause = new PauseTransition(Duration.millis(400));
+//
+//                pause.setOnFinished(e2 -> {
+//
+//                    String cardA = deck.draw();
+//                    String cardB = deck.draw();
+//
+//                    Image real1 = new Image(getClass().getResourceAsStream("/cards/" + cardA));
+//                    Image real2 = new Image(getClass().getResourceAsStream("/cards/" + cardB));
+//
+//                    flipCard(h1, real1);
+//                    flipCard(h2, real2);
+//
+//                });
+//
+//                pause.play();
+//            });
+//        });
 
         //test buttons
         Button flop = new Button("Flop");
@@ -453,6 +467,8 @@ public class PokerTableView{
                 players,
                 com1, com2, com3, com4, com5
         ));
+
+        setControlsEnabled(false);
 
         return rootStack;
     }
@@ -1541,6 +1557,34 @@ public class PokerTableView{
     }
     private void onExitGameClicked() throws IOException {
         App.getSceneController().switchToMainMenu();
+    }
+
+    private void setControlsEnabled(boolean enabled) {
+        foldBtn.setDisable(!enabled);
+        checkBtn.setDisable(!enabled);
+        raiseBtn.setDisable(!enabled);
+        allInBtn.setDisable(!enabled);
+    }
+
+    public void onServerMessage(String message) {
+
+        if (message.startsWith("GAME_STATE")) {
+
+            String[] parts = message.split(" ");
+            String currentPlayer = null;
+
+            for (String p : parts) {
+                if (p.startsWith("currentPlayer=")) {
+                    currentPlayer = p.split("=")[1];
+                }
+            }
+
+            String myName = App.getSceneController().getClient().getPlayerName();
+
+            boolean myTurn = myName.equals(currentPlayer);
+
+            Platform.runLater(() -> setControlsEnabled(myTurn));
+        }
     }
 }
 

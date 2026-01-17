@@ -6,6 +6,8 @@ public class PokerClient {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    private ServerMessageListener listener;
+    private String playerName;
 
     private String serverIP;
     private int serverPort;
@@ -13,6 +15,18 @@ public class PokerClient {
     public PokerClient(String serverIP, int serverPort) {
         this.serverIP = serverIP;
         this.serverPort = serverPort;
+    }
+
+    public void setMessageListener(ServerMessageListener listener) {
+        this.listener = listener;
+    }
+
+    public void setPlayerName(String name) {
+        this.playerName = name;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 
     public boolean connect() {
@@ -37,5 +51,18 @@ public class PokerClient {
     public void disconnect() throws IOException {
         System.out.println("Client disconnects");
         socket.close();
+    }
+
+    public void startListening(ServerMessageListener listener) {
+        new Thread(() -> {
+            try {
+                String msg;
+                while ((msg = in.readLine()) != null) {
+                    listener.onServerMessage(msg);
+                }
+            } catch (IOException e) {
+                System.out.println("Verbindung zum Server verloren");
+            }
+        }).start();
     }
 }

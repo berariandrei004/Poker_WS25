@@ -12,6 +12,7 @@ public class ClientHandler implements Runnable {
     private String playerName;
     private PrintWriter out;
     private BufferedReader in;
+    private Player player;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -23,6 +24,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    public Player getPlayer() {
+        return this.player;
+    }
+
     @Override
     public void run() {
         try {
@@ -32,13 +37,39 @@ public class ClientHandler implements Runnable {
                     MainPokerServer.getSmallBlind() + ";" + MainPokerServer.getStartingCash());
 
             String message;
+
             while ((message = in.readLine()) != null) {
                 System.out.println("Client sagt: " + message);
                 if (message.startsWith("PlayerName:")) {
                     int colonIndex = message.indexOf(":");
                     this.playerName = message.substring(colonIndex + 1);
+                    this.player = new Player(
+                            playerName,
+                            MainPokerServer.getStartingCash()
+                    );
+
+                    // 🟢 Player ins Game einfügen
+                    MainPokerServer.getGame().addPlayer(player);
+
+                    // 🟢 Client als Listener fürs Game
+                    MainPokerServer.getGame().addListener(this);
                     MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
                     sendPlayerListToThisClient();
+                }
+                else {
+                    // 👉 alle anderen Commands
+                    Player current = MainPokerServer.getGame().getCurrentPlayer();
+
+                    if (current != this.player) {
+                        sendMessage("ERROR Not your turn");
+                        continue;
+                    }
+
+                    String response = MainPokerServer
+                            .getGame()
+                            .handleCommand(player, message);
+
+                    sendMessage(response);
                 }
             }
 
@@ -66,6 +97,11 @@ public class ClientHandler implements Runnable {
             sendMessage(sb.toString());
         }
     }
+
+    public void sendPrivateCards(Card c1, Card c2) {
+        sendMessage("Handcards: " + c1 + " & " + c2);
+    }
+
     private String getPlayerName() {
         return this.playerName;
     }

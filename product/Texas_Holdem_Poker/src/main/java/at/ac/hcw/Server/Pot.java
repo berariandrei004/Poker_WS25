@@ -48,4 +48,14 @@ public class Pot {
     public void removePlayer(Player p) {
         players.remove(p);
     }
+
+    public int getHighestBet() {
+        int highest = 0;
+        for (Player p : players) {
+            if (p.getBet() > highest) {
+                highest = p.getBet();
+            }
+        }
+        return highest;
+    }
 }
