@@ -33,6 +33,8 @@ public class GeneralLobbyController implements ServerMessageListener{
     }
     @FXML
     private void onStartGameClicked() throws IOException  {
+        App.getSceneController().getClient().sendMessage("StartGame");
+        App.getSceneController().switchToPokerTable();
     }
     @FXML
     public void initialize() {
@@ -100,6 +102,8 @@ public class GeneralLobbyController implements ServerMessageListener{
             }
         } else if (message.startsWith("PlayerLeft:")) {
             playerListView.getItems().remove(message.split(":", 2)[1]);
+        } else if (message.equals("GameStarted")) {
+            App.getSceneController().switchToPokerTable();
         }
     }
 }
