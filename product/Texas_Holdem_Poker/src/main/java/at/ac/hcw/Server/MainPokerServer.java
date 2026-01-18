@@ -39,6 +39,9 @@ public class MainPokerServer {
         System.out.println("Max Clients: " + maxClients);
         System.out.println("Port: " + port);
 
+        Player[] emptyPlayers = new Player[maxClients]; // Platzhalter Array
+        game = new Game(Integer.parseInt(smallBlind), Integer.parseInt(bigBlind), emptyPlayers);
+
         ExecutorService threadPool = Executors.newFixedThreadPool(maxClients);
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {

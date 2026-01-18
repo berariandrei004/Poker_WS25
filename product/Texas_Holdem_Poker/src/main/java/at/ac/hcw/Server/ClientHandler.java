@@ -17,6 +17,7 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
+
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
