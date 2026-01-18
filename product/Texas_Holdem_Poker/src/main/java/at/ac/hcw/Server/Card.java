@@ -34,32 +34,32 @@ public class Card implements Comparable<Card>{
     public String toString() {
         String stringSuit;
         if (suit == 0) {
-            stringSuit = "Karo";
+            stringSuit = "diamonds";
         }
         else if (suit == 1) {
-            stringSuit = "Herz";
+            stringSuit = "hearts";
         }
         else if (suit == 2) {
-            stringSuit = "Pik";
+            stringSuit = "spades";
         }
         else {
-            stringSuit = "Kreuz";
+            stringSuit = "clubs";
         }
 
         if (this.num == 12) {
-            return (stringSuit + " Ass");
+            return ("ace_of_" + stringSuit);
         }
         else if (num == 11) {
-            return (stringSuit + " König");
+            return ("king_of_" + stringSuit);
         }
         else if (num == 10) {
-            return (stringSuit + " Dame");
+            return ("queen_of_" + stringSuit);
         }
         else if (num == 9) {
-            return (stringSuit + " Bube");
+            return ("jack_of_" + stringSuit);
         }
         else {
-            return (stringSuit + (num + 2));
+            return ((num+2) + "_of_" + stringSuit);
         }
     }
 }

@@ -1,13 +1,30 @@
 package at.ac.hcw.UI;
 
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class SceneController {
     private Stage stage;
@@ -70,8 +87,9 @@ public class SceneController {
     }
 
     public void switchToPokerTable() {
-        PokerTableView tableView = new PokerTableView();
+        tableView = new PokerTableView();
         Parent root = tableView.createView();
+        setMessageListener(tableView);
         Scene scene = new Scene(root, 900, 600);
         stage.setScene(scene);
         stage.show();
@@ -84,7 +102,15 @@ public class SceneController {
     public void setMessageListener(ServerMessageListener listener) {
         this.messageListener = listener;
     }
+
     private void handleServerMessage(String message) {
+        if (message.startsWith("HAND:")) {
+            if (tableView != null) {
+                tableView.onHandMessage(message.replace("HAND:", ""));
+            }
+            return;
+        }
+
         if (messageListener != null) {
             messageListener.onServerMessage(message);
         }
@@ -103,6 +129,7 @@ public class SceneController {
                 }
 
                 System.out.println("Erfolgreich verbunden");
+                client.setPlayerName(playerName);
                 client.sendMessage("PlayerName:" + playerName);
 
                 Platform.runLater(() -> {

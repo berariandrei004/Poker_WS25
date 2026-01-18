@@ -951,6 +951,12 @@ public class PokerTableView implements ServerMessageListener{
         }
     }
 
+    private Image loadCardImage(String cardName) {
+        return new Image(
+                getClass().getResourceAsStream("/cards/" + cardName + ".jpg")
+        );
+    }
+
     private void setDealer(VBox playerBox) {
         Circle dealerChip = (Circle) playerBox.getChildren().get(0);
         dealerChip.setVisible(true);
@@ -1042,6 +1048,20 @@ public class PokerTableView implements ServerMessageListener{
             });
 
             tt.play();
+        });
+    }
+
+    public void onHandMessage(String msg) {
+        String[] parts = msg.split(" ");
+
+        Image c1 = loadCardImage(parts[0]);
+        Image c2 = loadCardImage(parts[1]);
+
+        Platform.runLater(() -> {
+            h1.setVisible(true);
+            h2.setVisible(true);
+            flipCard(h1, c1);
+            flipCard(h2, c2);
         });
     }
 
