@@ -34,7 +34,7 @@
                                   <Font size="20.0" />
                               </font>
                      </Label>
-                     <Label fx:id="playerCount" alignment="CENTER" layoutX="160.0" layoutY="10.0" prefWidth="50.0" text="2">
+                     <Label fx:id="playerCountLabel" alignment="CENTER" layoutX="160.0" layoutY="10.0" prefWidth="50.0" text="2">
                         <font>
                            <Font size="25.0" />
                         </font>
@@ -81,6 +81,16 @@
                               </font>
                      </TextField>
                       </HBox>
+                      <Button fx:id="startGameButton"
+                              text="Spiel starten"
+                              prefWidth="220.0"
+                              visible="false"
+                              managed="false"
+                              onAction="#onStartGameClicked">
+                          <font>
+                              <Font size="25.0"/>
+                          </font>
+                      </Button>
                       <Button mnemonicParsing="false" onAction="#onLobbyLeftClicked" prefWidth="220.0" text="Lobby verlassen">
                           <font>
                               <Font size="25.0" />
@@ -92,8 +102,8 @@
                   </padding>
               </VBox>
              <VBox alignment="CENTER" maxWidth="450.0" prefHeight="150.0" prefWidth="250.0" spacing="20.0" style="-fx-background-color: #40A0FA;">
-                 <Label text="Spieler in der Lobby:" style="-fx-font-size: 25;" />
-                 <ListView fx:id="playerListView" prefWidth="300" prefHeight="400" style="-fx-font-size: 26px;"/>
+                 <Label style="-fx-font-size: 25;" text="Spieler in der Lobby:" />
+                 <ListView fx:id="playerListView" prefHeight="400" prefWidth="300" style="-fx-font-size: 26px;" />
              </VBox>
          </children>
       </HBox>

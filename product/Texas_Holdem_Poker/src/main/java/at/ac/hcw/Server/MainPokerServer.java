@@ -16,10 +16,10 @@ public class MainPokerServer {
     private static String bigBlind;
     private static String smallBlind;
     private static int startingCash;
+    private static int maxClients;
     private static Game game;
 
     public static void main(String[] args) {
-        int maxClients;
         int port = DEFAULT_PORT;
 
 
@@ -83,6 +83,7 @@ public class MainPokerServer {
     public static String getSmallBlind() {
         return smallBlind;
     }
+    public static int getMaxClients() {return maxClients;}
     public static int getStartingCash() {
         return startingCash;
     }
