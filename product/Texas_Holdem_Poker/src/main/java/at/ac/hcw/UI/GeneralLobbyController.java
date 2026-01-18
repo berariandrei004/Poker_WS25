@@ -80,7 +80,10 @@ public class GeneralLobbyController implements ServerMessageListener{
             String[] players = listStr.split(";");
             playerListView.getItems().setAll(players); // GUI auf die aktuelle Liste setzen
             if (players.length == Integer.parseInt(playerCountLabel.getText())) {
-                startGameButton.setVisible(true);
+                Platform.runLater(() -> {
+                    startGameButton.setVisible(true);
+                });
+
             }
         } else if (message.startsWith("PlayerJoined:")) {
             String newPlayer = message.split(":", 2)[1];
