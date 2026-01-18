@@ -81,7 +81,7 @@
                               </font>
                      </TextField>
                       </HBox>
-                      <Button fx:id="startGameButton" onAction="#onStartGameClicked" prefWidth="220.0" text="Spiel starten" visible="false">
+                      <Button fx:id="startGameButton" onAction="#onStartGameClicked" prefWidth="220.0" text="Spiel starten">
                           <font>
                               <Font size="25.0" />
                           </font>

@@ -37,6 +37,8 @@ public class GeneralLobbyController implements ServerMessageListener{
     @FXML
     public void initialize() {
         playerListView.setItems(players);
+        startGameButton.setVisible(false);
+        startGameButton.setManaged(false);
     }
     public void setLobbyId(String lobbyId) {
         Platform.runLater(() -> joinCodeShowField.setText(lobbyId));
@@ -82,13 +84,19 @@ public class GeneralLobbyController implements ServerMessageListener{
             if (players.length == Integer.parseInt(playerCountLabel.getText())) {
                 Platform.runLater(() -> {
                     startGameButton.setVisible(true);
+                    startGameButton.setManaged(true);
                 });
-
             }
         } else if (message.startsWith("PlayerJoined:")) {
             String newPlayer = message.split(":", 2)[1];
             if (!playerListView.getItems().contains(newPlayer)) {
                 playerListView.getItems().add(newPlayer);
+            }
+            if (playerListView.getItems().size() == Integer.parseInt(playerCountLabel.getText())) {
+                Platform.runLater(() -> {
+                    startGameButton.setVisible(true);
+                    startGameButton.setManaged(true);
+                });
             }
         } else if (message.startsWith("PlayerLeft:")) {
             playerListView.getItems().remove(message.split(":", 2)[1]);
