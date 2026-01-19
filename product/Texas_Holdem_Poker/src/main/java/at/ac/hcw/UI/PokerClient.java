@@ -2,6 +2,7 @@ package at.ac.hcw.UI;
 import java.io.*;
 import java.net.Socket;
 import java.util.function.Consumer;
+import javafx.application.Platform;
 
 public class PokerClient {
     private Socket socket;
@@ -47,6 +48,9 @@ public class PokerClient {
             socket = new Socket(serverIP, serverPort);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
+
+            startListening();
+
             System.out.println("Verbindung erfolgreich zu " + serverIP + ":" + serverPort);
             return true;
         } catch (IOException e) {
@@ -55,6 +59,22 @@ public class PokerClient {
             return false;
         }
     }
+
+    private void startListening() {
+        Thread listenerThread = new Thread(() -> {
+            try {
+                String message;
+                while ((message = in.readLine()) != null) {
+                    handleMessage(message);
+                }
+            } catch (IOException e) {
+                System.out.println("Verbindung zum Server verloren");
+            }
+        });
+        listenerThread.setDaemon(true);
+        listenerThread.start();
+    }
+
     public void sendMessage(String msg) {
         out.println(msg);
     }
@@ -77,27 +97,38 @@ public class PokerClient {
     private void handleMessage(String message) {
 
         if (message.equals("NEW_ROUND")) {
-            if (onNewRound != null) onNewRound.run();
+            if (onNewRound != null) {
+                Platform.runLater(onNewRound);
+            }
             return;
         }
 
         if (message.startsWith("FLOP")) {
-            if (onFlop != null) onFlop.accept(message.split(" "));
+            if (onFlop != null) {
+                String[] cards = message.split(" ");
+                Platform.runLater(() -> onFlop.accept(cards));
+            }
             return;
         }
 
         if (message.startsWith("TURN")) {
-            if (onTurn != null) onTurn.accept(message.split(" ")[1]);
+            if (onTurn != null) {
+                String card = message.split(" ")[1];
+                Platform.runLater(() -> onTurn.accept(card));
+            }
             return;
         }
 
         if (message.startsWith("RIVER")) {
-            if (onRiver != null) onRiver.accept(message.split(" ")[1]);
+            if (onRiver != null) {
+                String card = message.split(" ")[1];
+                Platform.runLater(() -> onRiver.accept(card));
+            }
             return;
         }
 
         if (listener != null) {
-            listener.onServerMessage(message);
+            Platform.runLater(() -> listener.onServerMessage(message));
         }
     }
 }

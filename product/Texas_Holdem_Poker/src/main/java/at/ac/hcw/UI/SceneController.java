@@ -122,35 +122,23 @@ public class SceneController {
         if (client == null) {
             client = new PokerClient(serverIP, serverPort);
         }
-        new Thread(() -> {
+
+        if (!client.connect()) {
+            System.out.println("Verbindung fehlgeschlagen");
+            return;
+        }
+
+        client.setPlayerName(playerName);
+        client.sendMessage("PlayerName:" + playerName);
+
+        client.setMessageListener(this::handleServerMessage);
+
+        Platform.runLater(() -> {
             try {
-                if (!client.connect()) {
-                    System.out.println("Verbindung fehlgeschlagen");
-                    return;
-                }
-
-                System.out.println("Erfolgreich verbunden");
-                client.setPlayerName(playerName);
-                client.sendMessage("PlayerName:" + playerName);
-
-                Platform.runLater(() -> {
-                    try {
-                        switchToGeneralLobbyMenu();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-                String message;
-                while ((message = client.receiveMessage()) != null) {
-                    String finalMessage = message;
-                    Platform.runLater(() -> {handleServerMessage(finalMessage);
-                    });
-                }
-
+                switchToGeneralLobbyMenu();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
     }
 }
