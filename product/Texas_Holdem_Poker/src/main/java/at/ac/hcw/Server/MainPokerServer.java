@@ -17,7 +17,7 @@ public class MainPokerServer {
     private static String smallBlind;
     private static int startingCash;
     private static int maxClients;
-    private static Game game;
+    private Game game;
 
     public static void main(String[] args) {
         int port = DEFAULT_PORT;
