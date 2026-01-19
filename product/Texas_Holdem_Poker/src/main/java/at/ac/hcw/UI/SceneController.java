@@ -135,7 +135,9 @@ public class SceneController {
 
                 String message;
                 while ((message = client.receiveMessage()) != null) {
-                    client.receiveAndHandleMessage();
+                    String finalMessage = message;
+                    Platform.runLater(() -> {handleServerMessage(finalMessage);
+                    });
                 }
 
             } catch (IOException e) {

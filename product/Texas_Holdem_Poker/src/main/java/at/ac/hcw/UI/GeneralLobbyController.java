@@ -34,7 +34,6 @@ public class GeneralLobbyController implements ServerMessageListener{
     @FXML
     private void onStartGameClicked() throws IOException  {
         App.getSceneController().getClient().sendMessage("StartGame");
-        App.getSceneController().switchToPokerTable();
     }
     @FXML
     public void initialize() {
