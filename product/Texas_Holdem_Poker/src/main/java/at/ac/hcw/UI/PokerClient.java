@@ -58,8 +58,12 @@ public class PokerClient {
     public void sendMessage(String msg) {
         out.println(msg);
     }
-    public String receiveMessage() throws IOException {
-        return in.readLine();
+
+    public void receiveAndHandleMessage() throws IOException {
+        String message = in.readLine();
+        if (message != null) {
+            handleMessage(message);
+        }
     }
     public void disconnect() throws IOException {
         System.out.println("Client disconnects");
