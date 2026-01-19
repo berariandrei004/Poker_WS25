@@ -1,49 +1,53 @@
 package at.ac.hcw.Server;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Collections;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.IOException;
+
 
 public class MainPokerServer {
-    private static final int DEFAULT_PORT = 5000;
-    private static final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
-    private static String lobbyId;
-    private static String bigBlind;
-    private static String smallBlind;
-    private static int startingCash;
-    private static int maxClients;
-    private Game game;
 
-    public static void main(String[] args) {
-        int port = DEFAULT_PORT;
+    private final int port;
+    private final int maxClients;
+    private final int startingCash;
+    private final String lobbyId;
 
+    private final List<ClientHandler> clients =
+            Collections.synchronizedList(new ArrayList<>());
 
-        try {
-            maxClients = Integer.parseInt(args[0]);
-            lobbyId = args[1];
-            bigBlind = args[2];
-            smallBlind = args[3];
-            startingCash = Integer.parseInt(args[4]);
+    private final Game game;
+    private final ExecutorService threadPool;
 
-        } catch (NumberFormatException e) {
-            System.out.println("Ungültige Argumente!");
-            return;
-        }
+    public MainPokerServer(
+            int port,
+            int maxClients,
+            String lobbyId,
+            int smallBlind,
+            int bigBlind,
+            int startingCash
+    ) {
+        this.port = port;
+        this.maxClients = maxClients;
+        this.lobbyId = lobbyId;
+        this.startingCash = startingCash;
 
-        System.out.println("Server startet...");
-        System.out.println("Max Clients: " + maxClients);
+        Player[] players = new Player[maxClients];
+        this.game = new Game(smallBlind, bigBlind, players);
+
+        this.threadPool = Executors.newFixedThreadPool(maxClients);
+
+        System.out.println("=== Poker Server gestartet ===");
+        System.out.println("Lobby-ID: " + lobbyId);
         System.out.println("Port: " + port);
+        System.out.println("Max Clients: " + maxClients);
+    }
 
-        Player[] emptyPlayers = new Player[maxClients]; // Platzhalter Array
-        game = new Game(Integer.parseInt(smallBlind), Integer.parseInt(bigBlind), emptyPlayers);
-
-        ExecutorService threadPool = Executors.newFixedThreadPool(maxClients);
-
+    public void start() throws IOException {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -53,44 +57,84 @@ public class MainPokerServer {
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                ClientHandler handler = new ClientHandler(clientSocket);
-                // Client zur Liste hinzufügen
+
+                if (clients.size() >= maxClients) {
+                    clientSocket.close();
+                    continue;
+                }
+
+                ClientHandler handler = new ClientHandler(clientSocket, this);
                 clients.add(handler);
                 threadPool.execute(handler);
             }
-
-        } catch (IOException e) {
-            System.out.println("Server gestoppt.");
-            System.out.println(e);
         }
     }
-    public static void broadcast(String message) {
+
+    /* =======================
+       Server API für Clients
+       ======================= */
+
+    public Game getGame() {
+        return game;
+    }
+
+    public String getLobbyId() {
+        return lobbyId;
+    }
+
+    public int getStartingCash() {
+        return startingCash;
+    }
+
+    public void broadcast(String message) {
         synchronized (clients) {
             for (ClientHandler client : clients) {
                 client.sendMessage(message);
             }
         }
     }
-    public static void removeClient(ClientHandler client) {
+
+    public void removeClient(ClientHandler client) {
         clients.remove(client);
+        System.out.println("Client entfernt. Aktive Clients: " + clients.size());
     }
-    public static String getLobbyId() {
-        return lobbyId;
-    }
-    public static String getBigBlind() {
-        return bigBlind;
-    }
-    public static String getSmallBlind() {
-        return smallBlind;
-    }
-    public static int getMaxClients() {return maxClients;}
-    public static int getStartingCash() {
-        return startingCash;
-    }
-    public static List<ClientHandler> getClients() {
-        return clients;
-    }
-    public static Game getGame() {
-        return game;
+
+    /* =======================
+       main()
+       ======================= */
+
+    public static void main(String[] args) {
+
+        if (args.length < 5) {
+            System.out.println(
+                    "Usage: java MainPokerServer <maxClients> <lobbyId> <bigBlind> <smallBlind> <startingCash>"
+            );
+            return;
+        }
+
+        try {
+            int maxClients = Integer.parseInt(args[0]);
+            String lobbyId = args[1];
+            int bigBlind = Integer.parseInt(args[2]);
+            int smallBlind = Integer.parseInt(args[3]);
+            int startingCash = Integer.parseInt(args[4]);
+
+            int port = 5000; // bewusst fix: ein Server = ein Spiel
+
+            MainPokerServer server = new MainPokerServer(
+                    port,
+                    maxClients,
+                    lobbyId,
+                    smallBlind,
+                    bigBlind,
+                    startingCash
+            );
+
+            server.start();
+
+        } catch (Exception e) {
+            System.out.println("Server konnte nicht gestartet werden:");
+            e.printStackTrace();
+        }
     }
 }

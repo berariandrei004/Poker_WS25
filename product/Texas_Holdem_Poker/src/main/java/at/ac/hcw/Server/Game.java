@@ -6,11 +6,11 @@ public class Game {
     private int smallBlind;
     private int bigBlind;
     private Player[] players;
-    public ArrayList<Pot> pots;
+    private ArrayList<Pot> pots;
     private int potIndex = 0;
     private State state = State.WAITING_FOR_PLAYERS;
     private int currentPlayerIndex;
-    private final List<ClientHandler> listeners = new ArrayList<>();
+    private final List<ClientHandler> listeners = Collections.synchronizedList(new ArrayList<>());
     private int dealerIndex = 0;
     private Card[] deck = new Card[52];
     private Random random = new Random();
@@ -62,13 +62,17 @@ public class Game {
         return players[currentPlayerIndex];
     }
 
-    public void addPlayer(Player player) {
+    public boolean addPlayer(Player player) {
+        for (Player p : players) {
+            if (p == player) return false;
+        }
         for (int i = 0; i < players.length; i++) {
             if (players[i] == null) {
                 players[i] = player;
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     private int countActivePlayers() {
@@ -518,14 +522,12 @@ public class Game {
 
     private void onNewRound() {
         System.out.println("NEW_ROUND");
-
         for (ClientHandler client : listeners) {
             client.sendMessage("NEW_ROUND");
         }
     }
 
     public synchronized void startGame() {
-        startNewRound();
         setState(State.PREFLOP_BETTING);
     }
 

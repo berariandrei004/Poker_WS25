@@ -101,7 +101,7 @@ public class Player {
             for (int j = i+1; j < sortedHand.length; j++) {
                 if (sortedHand[i].getNum() < sortedHand[j].getNum()) {
                     Card tmp = sortedHand[i];
-                    sortedHand[j] = sortedHand[i];
+                    sortedHand[i] = sortedHand[j];
                     sortedHand[i] = tmp;
                 }
             }

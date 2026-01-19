@@ -8,25 +8,18 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable {
 
-    private Socket socket;
-    private String playerName;
+    private final Socket socket;
+    private final MainPokerServer server;
+
     private PrintWriter out;
     private BufferedReader in;
+
+    private String playerName;
     private Player player;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, MainPokerServer server) {
         this.socket = socket;
-    }
-
-    public void sendMessage(String message) {
-        if (out != null) {
-            out.println(message);
-            System.out.println("Ich server, sende:" + message);
-        }
-    }
-
-    public Player getPlayer() {
-        return this.player;
+        this.server = server;
     }
 
     @Override
@@ -34,75 +27,97 @@ public class ClientHandler implements Runnable {
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-            sendMessage("LobbySettings:" + MainPokerServer.getLobbyId() + ";" + MainPokerServer.getBigBlind() + ";" +
-                    MainPokerServer.getSmallBlind() + ";" + MainPokerServer.getStartingCash() + ";" + MainPokerServer.getMaxClients());
+
+            // Lobby-Infos an Client senden
+            sendMessage(
+                    "LobbySettings:" +
+                            server.getLobbyId()
+            );
 
             String message;
-
             while ((message = in.readLine()) != null) {
                 System.out.println("Client sagt: " + message);
+
                 if (message.startsWith("PlayerName:")) {
-                    int colonIndex = message.indexOf(":");
-                    this.playerName = message.substring(colonIndex + 1);
-                    this.player = new Player(
-                            playerName,
-                            MainPokerServer.getStartingCash()
-                    );
+                    handlePlayerJoin(message);
 
-                    // 🟢 Player ins Game einfügen
-                    MainPokerServer.getGame().addPlayer(player);
+                } else if (message.equals("START_GAME")) {
+                    handleStartGame();
 
-                    // 🟢 Client als Listener fürs Game
-                    MainPokerServer.getGame().addListener(this);
-                    MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
-                    sendPlayerListToThisClient();
-                } else if (message.equals("StartGame")) {
-                    MainPokerServer.getGame().startGame();
-                    MainPokerServer.broadcast("GameStarted");
                 } else {
-                    // 👉 alle anderen Commands
-                    Player current = MainPokerServer.getGame().getCurrentPlayer();
-
-                    if (current != this.player) {
-                        sendMessage("ERROR Not your turn");
-                        continue;
-                    }
-
-                    String response = MainPokerServer
-                            .getGame()
-                            .handleCommand(player, message);
-
-                    sendMessage(response);
+                    handleGameCommand(message);
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Client verbindung abgebrochen");
+            System.out.println("Client Verbindung abgebrochen");
         } finally {
-            System.out.println("Client hat sich getrennt.");
-            MainPokerServer.getGame().removeListener(this);
-            MainPokerServer.removeClient(this);
+            cleanup();
         }
     }
-    private void sendPlayerListToThisClient() {
-        synchronized (MainPokerServer.getClients()) {
-            StringBuilder sb = new StringBuilder("PlayerList:");
-            for (ClientHandler client : MainPokerServer.getClients()) {
-                if (client.getPlayerName() != null) {
-                    sb.append(client.getPlayerName()).append(";");
-                }
-            }
-            // letztes Komma entfernen
-            if (sb.length() > 11) sb.setLength(sb.length() - 1);
-            sendMessage(sb.toString());
+
+    /* =========================
+       Message Handling
+       ========================= */
+
+    private void handlePlayerJoin(String message) {
+        this.playerName = message.substring(message.indexOf(":") + 1);
+
+        this.player = new Player(
+                playerName,
+                server.getStartingCash()
+        );
+
+        server.getGame().addPlayer(player);
+        server.broadcast("PlayerJoined:" + playerName);
+    }
+
+    private void handleStartGame() {
+        server.getGame().startGame();
+        server.broadcast("GameStarted");
+    }
+
+    private void handleGameCommand(String message) {
+        Player current = server.getGame().getCurrentPlayer();
+
+        if (current != player) {
+            sendMessage("ERROR Not your turn");
+            return;
         }
+
+        String response = server.getGame().handleCommand(player, message);
+        sendMessage(response);
+    }
+
+    /* =========================
+       Helper
+       ========================= */
+
+    public void sendMessage(String message) {
+        if (out != null) {
+            out.println(message);
+            out.flush();
+            System.out.println("Server → Client: " + message);
+        }
+    }
+
+    private void cleanup() {
+        System.out.println("Client getrennt: " + playerName);
+        server.removeClient(this);
+        try {
+            socket.close();
+        } catch (IOException ignored) {}
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 
     public void sendPrivateCards(Card c1, Card c2) {
-        sendMessage("Handcards: " + c1 + " & " + c2);
-    }
-
-    private String getPlayerName() {
-        return this.playerName;
+        sendMessage(
+                "HAND_CARDS " +
+                        c1.toString() + " " +
+                        c2.toString()
+        );
     }
 }
