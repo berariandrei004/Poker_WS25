@@ -166,42 +166,6 @@ public class Game {
         return true;
     }
 
-    /*public void playRound(int currentBet, int roundStart, Scanner scanner) {
-        int i = roundStart;
-        Pot mainPot = pots.get(0);
-        int lastRaiser = -1;
-
-        while (countActivePlayers() > 1) {
-
-            Player p = players[i];
-
-            if (p != null && mainPot.getPlayers().contains(p)) {
-
-                int action = p.askAction(currentBet, scanner);
-
-                if (action < 0) {
-                    mainPot.removePlayer(p);
-                }
-                else {
-                    int diff = action - p.getBet();
-                    p.setBet(action);
-                    mainPot.raisePot(diff);
-                    if (action > currentBet) {
-                        currentBet = action;
-                        lastRaiser = i;
-                    }
-                }
-            }
-
-            i = (i + 1) % players.length;
-
-            if (lastRaiser == i || mainPot.getPlayers().size() <= 1) {
-                break;
-            }
-        }
-    }
-    */
-
     public void buildSidePots() {
 
         pots.clear();
@@ -334,108 +298,6 @@ public class Game {
 
         return response;
     }
-    /*
-    public void playGame() {
-        Random random = new Random();
-        int start = random.nextInt(players.length);
-        Scanner scanner = new Scanner(System.in);
-
-        boolean continueGame = true;
-        while (continueGame) {
-            Card[] deck = createDeck();
-            Pot mainPot = new Pot(0);
-            pots.add(mainPot);
-            for (Player player : players) {
-                mainPot.addPlayer(player);
-            }
-
-            for (Player player : players) {
-                player.receiveCard(setCard(deck, random), 0);
-                player.receiveCard(setCard(deck, random), 1);
-                System.out.println(player.getHand()[0]);
-                System.out.println(player.getHand()[1]);
-            }
-
-            players[start].raise(smallBlind);
-            players[start].setBet(smallBlind);
-            mainPot.raisePot(smallBlind);
-
-            int bbPlayer = (start + 1) % players.length;
-            players[bbPlayer].setBet(bigBlind);
-            players[bbPlayer].raise(bigBlind);
-
-            mainPot.raisePot(bigBlind);
-
-            int roundStart = (bbPlayer+1)%players.length;
-
-            playRound(bigBlind,roundStart,scanner);
-
-            Card FlopFirst = setCard(deck,random);
-            Card FlopSecond = setCard(deck,random);
-            Card FlopThird = setCard(deck,random);
-
-            System.out.println(FlopFirst);
-            System.out.println(FlopSecond);
-            System.out.println(FlopThird);
-
-            for (Player player : players) {
-                if (player != null) {
-                    player.receiveCard(FlopFirst, 2);
-                    player.receiveCard(FlopSecond, 3);
-                    player.receiveCard(FlopThird, 4);
-                }
-            }
-
-            playRound(0,roundStart,scanner);
-
-            Card Turn = setCard(deck,random);
-
-            System.out.println(Turn);
-
-            for (Player player : players) {
-                if (player != null) {
-                    player.receiveCard(Turn, 5);
-                }
-            }
-
-            playRound(0,roundStart,scanner);
-
-            Card River = setCard(deck,random);
-
-            System.out.println(River);
-
-            for (Player player : players) {
-                if (player != null) {
-                    player.receiveCard(River, 6);
-                }
-            }
-
-            playRound(0,roundStart,scanner);
-            buildSidePots();
-
-            for (Pot pot : pots) {
-
-                Player[] potWinners = getWinners(pot.getPlayers());
-                int personalWin = pot.getMoney() / potWinners.length;
-
-                for (Player p : potWinners) {
-                    p.winPot(personalWin);
-                }
-            }
-
-            for (Player player: players) {
-                player.resetForNewRound();
-            }
-
-            deck = createDeck();
-            start++;
-
-            System.out.println("Do you want to continue the game?");
-            continueGame = scanner.nextBoolean();
-        }
-    }
-
-     */
 
     private void sendPrivateCardsToOwner(Player player, Card c1, Card c2) {
         for (ClientHandler ch : listeners) {
@@ -485,19 +347,13 @@ public class Game {
         Player bb = players[bbIndex];
 
         sb.raise(smallBlind);
-        sb.setBet(smallBlind);
         mainPot.raisePot(smallBlind);
 
         bb.raise(bigBlind);
-        bb.setBet(bigBlind);
         mainPot.raisePot(bigBlind);
 
         currentBet = bigBlind;
         currentPlayerIndex = (bbIndex + 1) % players.length;
-
-        state = State.PREFLOP_BETTING;
-
-        broadcastGameState();
     }
 
     public synchronized void broadcastGameState() {
@@ -537,11 +393,9 @@ public class Game {
 
         currentBet = 0;
         resetPlayerBets();
-
-        state = State.FLOP_BETTING;
         currentPlayerIndex = getNextActivePlayer();
-
-        broadcastGameState();
+        setState(State.FLOP_BETTING);
+        broadcast("FLOP " + c1 + " " + c2 + " " + c3);
     }
 
     public void dealTurn() {
@@ -556,11 +410,9 @@ public class Game {
 
         currentBet = 0;
         resetPlayerBets();
-
-        state = State.TURN_BETTING;
         currentPlayerIndex = getNextActivePlayer();
-
-        broadcastGameState();
+        setState(State.TURN_BETTING);
+        broadcast("TURN " + c4);
     }
 
     public void dealRiver() {
@@ -575,11 +427,10 @@ public class Game {
 
         currentBet = 0;
         resetPlayerBets();
-
-        state = State.RIVER_BETTING;
         currentPlayerIndex = getNextActivePlayer();
 
-        broadcastGameState();
+        setState(State.RIVER_BETTING);
+        broadcast("RIVER " + c5);
     }
 
     public void advanceState() {
@@ -593,7 +444,7 @@ public class Game {
 
     public void showdown() {
 
-        state = State.SHOWDOWN;
+        setState(State.SHOWDOWN);
 
         buildSidePots();
 
@@ -605,9 +456,9 @@ public class Game {
                 p.winPot(win);
             }
         }
-
-        broadcastGameState();
         dealerIndex = (dealerIndex + 1) % players.length;
+        startNewRound();
+        setState(State.PREFLOP_BETTING);
     }
 
     public void resetPlayerBets() {
@@ -652,5 +503,34 @@ public class Game {
 
         // Kein Spieler mehr, der handeln darf
         return -1;
+    }
+
+    public void setState(State newState) {
+        this.state = newState;
+
+        if (newState == State.PREFLOP_BETTING) {
+            onNewRound();
+        }
+
+        broadcastGameState();
+    }
+
+    private void onNewRound() {
+        System.out.println("NEW_ROUND");
+
+        for (ClientHandler client : listeners) {
+            client.sendMessage("NEW_ROUND");
+        }
+    }
+
+    public synchronized void startGame() {
+        startNewRound();
+        setState(State.PREFLOP_BETTING);
+    }
+
+    private void broadcast(String msg) {
+        for (ClientHandler ch : listeners) {
+            ch.sendMessage(msg);
+        }
     }
 }

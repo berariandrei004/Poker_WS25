@@ -1,6 +1,7 @@
 package at.ac.hcw.UI;
 import java.io.*;
 import java.net.Socket;
+import java.util.function.Consumer;
 
 public class PokerClient {
     private Socket socket;
@@ -8,6 +9,10 @@ public class PokerClient {
     private PrintWriter out;
     private ServerMessageListener listener;
     private String playerName;
+    private Runnable onNewRound;
+    private Consumer<String[]> onFlop;
+    private Consumer<String> onTurn;
+    private Consumer<String> onRiver;
 
     private String serverIP;
     private int serverPort;
@@ -28,6 +33,14 @@ public class PokerClient {
     public String getPlayerName() {
         return playerName;
     }
+
+    public void setOnNewRound(Runnable onNewRound) {
+        this.onNewRound = onNewRound;
+    }
+
+    public void setOnFlop(Consumer<String[]> c) { onFlop = c; }
+    public void setOnTurn(Consumer<String> c) { onTurn = c; }
+    public void setOnRiver(Consumer<String> c) { onRiver = c; }
 
     public boolean connect() {
         try {
@@ -53,16 +66,30 @@ public class PokerClient {
         socket.close();
     }
 
-    public void startListening(ServerMessageListener listener) {
-        new Thread(() -> {
-            try {
-                String msg;
-                while ((msg = in.readLine()) != null) {
-                    listener.onServerMessage(msg);
-                }
-            } catch (IOException e) {
-                System.out.println("Verbindung zum Server verloren");
-            }
-        }).start();
+    private void handleMessage(String message) {
+
+        if (message.equals("NEW_ROUND")) {
+            if (onNewRound != null) onNewRound.run();
+            return;
+        }
+
+        if (message.startsWith("FLOP")) {
+            if (onFlop != null) onFlop.accept(message.split(" "));
+            return;
+        }
+
+        if (message.startsWith("TURN")) {
+            if (onTurn != null) onTurn.accept(message.split(" ")[1]);
+            return;
+        }
+
+        if (message.startsWith("RIVER")) {
+            if (onRiver != null) onRiver.accept(message.split(" ")[1]);
+            return;
+        }
+
+        if (listener != null) {
+            listener.onServerMessage(message);
+        }
     }
 }

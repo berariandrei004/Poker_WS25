@@ -6,6 +6,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -16,6 +17,7 @@ import javafx.scene.layout.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,9 +25,13 @@ import java.util.List;
 
 
 public class PokerTableView implements ServerMessageListener{
-    private Deck deck;
     private ImageView h1;
     private ImageView h2;
+    private ImageView com1;
+    private ImageView com2;
+    private ImageView com3;
+    private ImageView com4;
+    private ImageView com5;
     private Pane animationLayer;
     private ImageView deckImage;
     private StackPane overlay;
@@ -38,7 +44,21 @@ public class PokerTableView implements ServerMessageListener{
 
     public Parent createView() {
         PokerClient client = App.getSceneController().getClient();
-        deck = new Deck();
+        client.setOnNewRound(() -> {
+            Platform.runLater(this::onNewRound);
+        });
+
+        client.setOnFlop(cards ->
+                Platform.runLater(() -> showFlop(cards))
+        );
+
+        client.setOnTurn(card ->
+                Platform.runLater(() -> showTurn(card))
+        );
+
+        client.setOnRiver(card ->
+                Platform.runLater(() -> showRiver(card))
+        );
         BorderPane root = new BorderPane();
         animationLayer = new Pane();
         animationLayer.setPickOnBounds(false);
@@ -54,11 +74,11 @@ public class PokerTableView implements ServerMessageListener{
 
         Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
 
-        ImageView com1 = new ImageView(back);
-        ImageView com2 = new ImageView(back);
-        ImageView com3 = new ImageView(back);
-        ImageView com4 = new ImageView(back);
-        ImageView com5 = new ImageView(back);
+        com1 = new ImageView(back);
+        com2 = new ImageView(back);
+        com3 = new ImageView(back);
+        com4 = new ImageView(back);
+        com5 = new ImageView(back);
 
         for (ImageView c : new ImageView[]{com1, com2, com3, com4, com5}) {
             c.setFitWidth(90);
@@ -271,15 +291,6 @@ public class PokerTableView implements ServerMessageListener{
         });
         allInBtn.setOnAction(e -> {
             client.sendMessage("ALLIN");
-            setAllIn(leftPlayer, true);
-            setChips(leftPlayer, 0);
-
-            Image real1 = new Image(getClass().getResourceAsStream("/cards/5_of_clubs.jpg"));
-            Image real2  = new Image(getClass().getResourceAsStream("/cards/6_of_spades.jpg"));
-
-
-            flipCard(h1, real1);
-            flipCard(h2, real2);
         });
 
 
@@ -382,18 +393,17 @@ public class PokerTableView implements ServerMessageListener{
         //HIer waren stage.scene aufrufe
 
         //Dealer rotate
-        final int[] dealerIndex = {0};
-
-        int sbIndex = (dealerIndex[0] + 1) % players.size();
-        setSmallBlind(players.get(sbIndex));
-
-        int bbIndex = (dealerIndex[0] + 2) % players.size();
-        setBigBlind(players.get(bbIndex));
-
-        //highlight current player
-        final int[] currentPlayer = {0};
-        highlightPlayer(players.get(currentPlayer[0]), true);
-
+//        final int[] dealerIndex = {0};
+//
+//        int sbIndex = (dealerIndex[0] + 1) % players.size();
+//        setSmallBlind(players.get(sbIndex));
+//
+//        int bbIndex = (dealerIndex[0] + 2) % players.size();
+//        setBigBlind(players.get(bbIndex));
+//
+//        //highlight current player
+//        final int[] currentPlayer = {0};
+//        highlightPlayer(players.get(currentPlayer[0]), true);
 //        raise.setOnAction(e -> {
 //            int delay = 0;
 //
@@ -431,47 +441,47 @@ public class PokerTableView implements ServerMessageListener{
 //                pause.play();
 //            });
 //        });
-
-        //test buttons
-        Button flop = new Button("Flop");
-        rightControlBox.getChildren().add(flop);
-        Button turn = new Button("Turn");
-        rightControlBox.getChildren().add(turn);
-        Button river = new Button("River");
-        rightControlBox.getChildren().add(river);
-        Button newRound = new Button("New round");
-        rightControlBox.getChildren().add(newRound);
-        Button collect = new Button("Collect Cards");
-        rightControlBox.getChildren().add(collect);
-        Button playHand = new Button("Play Hand");
-        rightControlBox.getChildren().add(playHand);
-
-        flop.setOnAction(e -> dealFlop(deckImage, animationLayer, com1, com2, com3));
-        turn.setOnAction(e -> dealTurn(deckImage, animationLayer, com4));
-        river.setOnAction(e -> dealRiver(deckImage, animationLayer, com5));
-        newRound.setOnAction(e -> startNewRound(
-                players,
-                com1, com2, com3, com4, com5
-        ));
-        collect.setOnAction(e ->
-                collectAllCardsToDeck(
-                        animationLayer,
-                        deckImage,
-                        new ImageView[]{com1, com2, com3, com4, com5},
-                        players,
-                        h1, h2
-                )
-        );
-        playHand.setOnAction(e -> playFullHand(
-                deckImage,
-                players,
-                com1, com2, com3, com4, com5
-        ));
-
-        setControlsEnabled(false);
-
-        return rootStack;
-    }
+//
+//        //test buttons
+//        Button flop = new Button("Flop");
+//        rightControlBox.getChildren().add(flop);
+//        Button turn = new Button("Turn");
+//        rightControlBox.getChildren().add(turn);
+//        Button river = new Button("River");
+//        rightControlBox.getChildren().add(river);
+//        Button newRound = new Button("New round");
+//        rightControlBox.getChildren().add(newRound);
+//        Button collect = new Button("Collect Cards");
+//        rightControlBox.getChildren().add(collect);
+//        Button playHand = new Button("Play Hand");
+//        rightControlBox.getChildren().add(playHand);
+//
+//        flop.setOnAction(e -> dealFlop(deckImage, animationLayer, com1, com2, com3));
+//        turn.setOnAction(e -> dealTurn(deckImage, animationLayer, com4));
+//        river.setOnAction(e -> dealRiver(deckImage, animationLayer, com5));
+//        newRound.setOnAction(e -> startNewRound(
+//                players,
+//                com1, com2, com3, com4, com5
+//        ));
+//        collect.setOnAction(e ->
+//                collectAllCardsToDeck(
+//                        animationLayer,
+//                        deckImage,
+//                        new ImageView[]{com1, com2, com3, com4, com5},
+//                        players,
+//                        h1, h2
+//                )
+//        );
+//        playHand.setOnAction(e -> playFullHand(
+//                deckImage,
+//                players,
+//                com1, com2, com3, com4, com5
+//        ));
+//
+//        setControlsEnabled(false);
+//
+       return rootStack;
+       }
 //    public void start(Stage stage) {
 //        deck = new Deck();
 //        BorderPane root = new BorderPane();
@@ -957,6 +967,13 @@ public class PokerTableView implements ServerMessageListener{
         );
     }
 
+    private void onNewRound() {
+        System.out.println("NEW_ROUND");
+
+        resetCards(h1, h2);
+        setControlsEnabled(false);
+    }
+
     private void setDealer(VBox playerBox) {
         Circle dealerChip = (Circle) playerBox.getChildren().get(0);
         dealerChip.setVisible(true);
@@ -1079,215 +1096,215 @@ public class PokerTableView implements ServerMessageListener{
         flip.play();
     }
 
-    private void dealFlop(ImageView deckImage, Pane animationLayer,
-                          ImageView c1, ImageView c2, ImageView c3) {
-
-        Image real1 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-        Image real2 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-        Image real3 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-
-        SequentialTransition seq = new SequentialTransition();
-
-        for (ImageView target : new ImageView[]{c1, c2, c3}) {
-
-            ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
-            flying.setFitWidth(90);
-            flying.setFitHeight(130);
-
-            animationLayer.getChildren().add(flying);
-
-            Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
-            Bounds targetB = target.localToScene(target.getBoundsInLocal());
-
-            double startX = deck.getCenterX();
-            double startY = deck.getCenterY();
-
-            double endX = targetB.getCenterX();
-            double endY = targetB.getCenterY();
-
-            Point2D start = animationLayer.sceneToLocal(startX, startY);
-            Point2D end = animationLayer.sceneToLocal(endX, endY);
-
-
-            flying.setLayoutX(start.getX());
-            flying.setLayoutY(start.getY());
-
-            TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
-            tt.setToX(end.getX() - start.getX());
-            tt.setToY(end.getY() - start.getY());
-
-            tt.setOnFinished(ev -> {
-                animationLayer.getChildren().remove(flying);
-                target.setVisible(true);
-            });
-
-            seq.getChildren().add(tt);
-        }
-
-        seq.setOnFinished(ev -> {
-            flipCard(c1, real1);
-            flipCard(c2, real2);
-            flipCard(c3, real3);
-        });
-
-        seq.play();
-    }
-
-    private void dealCardTo(ImageView c1, ImageView deckImage, Pane animationLayer, Object o) {
-    }
-
-    private void showAndFlip(ImageView card, Image face) {
-        card.setOpacity(1);
-
-        ScaleTransition shrink = new ScaleTransition(Duration.millis(120), card);
-        shrink.setToX(0);
-
-        ScaleTransition grow = new ScaleTransition(Duration.millis(120), card);
-        grow.setToX(1);
-
-        shrink.setOnFinished(e -> card.setImage(face));
-
-        new SequentialTransition(shrink, grow).play();
-    }
-
-    private void dealTurn(ImageView deckImage, Pane animationLayer, ImageView turnCard) {
-        Image realTurn = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-
-        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
-        flying.setFitWidth(90);
-        flying.setFitHeight(130);
-
-        animationLayer.getChildren().add(flying);
-
-        Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
-        Bounds targetB = turnCard.localToScene(turnCard.getBoundsInLocal());
-
-        double startX = deck.getCenterX();
-        double startY = deck.getCenterY();
-
-        double endX = targetB.getCenterX();
-        double endY = targetB.getCenterY();
-
-        Point2D start = animationLayer.sceneToLocal(startX, startY);
-        Point2D end = animationLayer.sceneToLocal(endX, endY);
-
-        flying.setLayoutX(start.getX());
-        flying.setLayoutY(start.getY());
-
-        TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
-        tt.setToX(end.getX() - start.getX());
-        tt.setToY(end.getY() - start.getY());
-
-        tt.setOnFinished(ev -> {
-            animationLayer.getChildren().remove(flying);
-
-            turnCard.setVisible(true);
-            turnCard.setOpacity(1);
-
-            flipCard(turnCard, realTurn);
-        });
-
-        tt.play();
-    }
-
-    private void dealRiver(ImageView deckImage, Pane animationLayer, ImageView riverCard) {
-        Image realRiver = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-
-        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
-        flying.setFitWidth(90);
-        flying.setFitHeight(130);
-
-        animationLayer.getChildren().add(flying);
-
-        Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
-        Bounds targetB = riverCard.localToScene(riverCard.getBoundsInLocal());
-
-        double startX = deck.getCenterX();
-        double startY = deck.getCenterY();
-
-        double endX = targetB.getCenterX();
-        double endY = targetB.getCenterY();
-
-        Point2D start = animationLayer.sceneToLocal(startX, startY);
-        Point2D end = animationLayer.sceneToLocal(endX, endY);
-
-        flying.setLayoutX(start.getX());
-        flying.setLayoutY(start.getY());
-
-        TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
-        tt.setToX(end.getX() - start.getX());
-        tt.setToY(end.getY() - start.getY());
-
-        tt.setOnFinished(ev -> {
-            animationLayer.getChildren().remove(flying);
-
-            riverCard.setVisible(true);
-            riverCard.setOpacity(1);
-
-            flipCard(riverCard, realRiver);
-        });
-
-        tt.play();
-    }
-
-    private void startNewRound(
-            java.util.List<VBox> players,
-            ImageView com1, ImageView com2, ImageView com3, ImageView com4, ImageView com5
-    ) {
-
-        deck = new Deck();
-
-        resetCards(com1, com2, com3, com4, com5, h1, h2);
-
-        for (ImageView c : new ImageView[]{com1, com2, com3, com4, com5}) {
-            c.setVisible(false);
-        }
-
-        h1.setVisible(false);
-        h2.setVisible(false);
-
-        for (VBox p : players) {
-            HBox cards = (HBox) p.getChildren().get(6);
-            ImageView c1 = (ImageView) cards.getChildren().get(0);
-            ImageView c2 = (ImageView) cards.getChildren().get(1);
-
-            resetCards(c1, c2);
-        }
-
-        rotateDealer(players);
-
-        assignBlinds(players);
-
-        dealNewHandForAllPlayers(deckImage, players);
-
-        System.out.println("Next round has started");
-
-    }
-    private int dealerIndex = 0;
-
-    private void rotateDealer(java.util.List<VBox> players) {
-
-        clearDealer(players.get(dealerIndex));
-
-        dealerIndex = (dealerIndex + 1) % players.size();
-
-        setDealer(players.get(dealerIndex));
-    }
-
-    private void assignBlinds(java.util.List<VBox> players) {
-
-        for (VBox p : players) {
-            clearSmallBlind(p);
-            clearBigBlind(p);
-        }
-
-        int sbIndex = (dealerIndex + 1) % players.size();
-        int bbIndex = (dealerIndex + 2) % players.size();
-
-        setSmallBlind(players.get(sbIndex));
-        setBigBlind(players.get(bbIndex));
-    }
-
+//    private void dealFlop(ImageView deckImage, Pane animationLayer,
+//                          ImageView c1, ImageView c2, ImageView c3) {
+//
+//        Image real1 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
+//        Image real2 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
+//        Image real3 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
+//
+//        SequentialTransition seq = new SequentialTransition();
+//
+//        for (ImageView target : new ImageView[]{c1, c2, c3}) {
+//
+//            ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
+//            flying.setFitWidth(90);
+//            flying.setFitHeight(130);
+//
+//            animationLayer.getChildren().add(flying);
+//
+//            Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
+//            Bounds targetB = target.localToScene(target.getBoundsInLocal());
+//
+//            double startX = deck.getCenterX();
+//            double startY = deck.getCenterY();
+//
+//            double endX = targetB.getCenterX();
+//            double endY = targetB.getCenterY();
+//
+//            Point2D start = animationLayer.sceneToLocal(startX, startY);
+//            Point2D end = animationLayer.sceneToLocal(endX, endY);
+//
+//
+//            flying.setLayoutX(start.getX());
+//            flying.setLayoutY(start.getY());
+//
+//            TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
+//            tt.setToX(end.getX() - start.getX());
+//            tt.setToY(end.getY() - start.getY());
+//
+//            tt.setOnFinished(ev -> {
+//                animationLayer.getChildren().remove(flying);
+//                target.setVisible(true);
+//            });
+//
+//            seq.getChildren().add(tt);
+//        }
+//
+//        seq.setOnFinished(ev -> {
+//            flipCard(c1, real1);
+//            flipCard(c2, real2);
+//            flipCard(c3, real3);
+//        });
+//
+//        seq.play();
+//    }
+//
+//    private void dealCardTo(ImageView c1, ImageView deckImage, Pane animationLayer, Object o) {
+//    }
+//
+//    private void showAndFlip(ImageView card, Image face) {
+//        card.setOpacity(1);
+//
+//        ScaleTransition shrink = new ScaleTransition(Duration.millis(120), card);
+//        shrink.setToX(0);
+//
+//        ScaleTransition grow = new ScaleTransition(Duration.millis(120), card);
+//        grow.setToX(1);
+//
+//        shrink.setOnFinished(e -> card.setImage(face));
+//
+//        new SequentialTransition(shrink, grow).play();
+//    }
+//    private void dealTurn(ImageView deckImage, Pane animationLayer, ImageView turnCard) {
+//        Image realTurn = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
+//
+//        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
+//        flying.setFitWidth(90);
+//        flying.setFitHeight(130);
+//
+//        animationLayer.getChildren().add(flying);
+//
+//        Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
+//        Bounds targetB = turnCard.localToScene(turnCard.getBoundsInLocal());
+//
+//        double startX = deck.getCenterX();
+//        double startY = deck.getCenterY();
+//
+//        double endX = targetB.getCenterX();
+//        double endY = targetB.getCenterY();
+//
+//        Point2D start = animationLayer.sceneToLocal(startX, startY);
+//        Point2D end = animationLayer.sceneToLocal(endX, endY);
+//
+//        flying.setLayoutX(start.getX());
+//        flying.setLayoutY(start.getY());
+//
+//        TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
+//        tt.setToX(end.getX() - start.getX());
+//        tt.setToY(end.getY() - start.getY());
+//
+//        tt.setOnFinished(ev -> {
+//            animationLayer.getChildren().remove(flying);
+//
+//            turnCard.setVisible(true);
+//            turnCard.setOpacity(1);
+//
+//            flipCard(turnCard, realTurn);
+//        });
+//
+//        tt.play();
+//    }
+
+//    private void dealRiver(ImageView deckImage, Pane animationLayer, ImageView riverCard) {
+//        Image realRiver = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
+//
+//        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
+//        flying.setFitWidth(90);
+//        flying.setFitHeight(130);
+//
+//        animationLayer.getChildren().add(flying);
+//
+//        Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
+//        Bounds targetB = riverCard.localToScene(riverCard.getBoundsInLocal());
+//
+//        double startX = deck.getCenterX();
+//        double startY = deck.getCenterY();
+//
+//        double endX = targetB.getCenterX();
+//        double endY = targetB.getCenterY();
+//
+//        Point2D start = animationLayer.sceneToLocal(startX, startY);
+//        Point2D end = animationLayer.sceneToLocal(endX, endY);
+//
+//        flying.setLayoutX(start.getX());
+//        flying.setLayoutY(start.getY());
+//
+//        TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
+//        tt.setToX(end.getX() - start.getX());
+//        tt.setToY(end.getY() - start.getY());
+//
+//        tt.setOnFinished(ev -> {
+//            animationLayer.getChildren().remove(flying);
+//
+//            riverCard.setVisible(true);
+//            riverCard.setOpacity(1);
+//
+//            flipCard(riverCard, realRiver);
+//        });
+//
+//        tt.play();
+//    }
+
+//    private void startNewRound(
+//            java.util.List<VBox> players,
+//            ImageView com1, ImageView com2, ImageView com3, ImageView com4, ImageView com5
+//    ) {
+//
+//        deck = new Deck();
+//
+//        resetCards(com1, com2, com3, com4, com5, h1, h2);
+//
+//        for (ImageView c : new ImageView[]{com1, com2, com3, com4, com5}) {
+//            c.setVisible(false);
+//        }
+//
+//        h1.setVisible(false);
+//        h2.setVisible(false);
+//
+//        for (VBox p : players) {
+//            HBox cards = (HBox) p.getChildren().get(6);
+//            ImageView c1 = (ImageView) cards.getChildren().get(0);
+//            ImageView c2 = (ImageView) cards.getChildren().get(1);
+//
+//            resetCards(c1, c2);
+//        }
+//
+//        rotateDealer(players);
+//
+//        assignBlinds(players);
+//
+//        dealNewHandForAllPlayers(deckImage, players);
+//
+//        System.out.println("Next round has started");
+//
+//    }
+//    private int dealerIndex = 0;
+//
+//    private void rotateDealer(java.util.List<VBox> players) {
+//
+//        clearDealer(players.get(dealerIndex));
+//
+//        dealerIndex = (dealerIndex + 1) % players.size();
+//
+//        setDealer(players.get(dealerIndex));
+//    }
+//
+//    private void assignBlinds(java.util.List<VBox> players) {
+//
+//        for (VBox p : players) {
+//            clearSmallBlind(p);
+//            clearBigBlind(p);
+//        }
+//
+//        int sbIndex = (dealerIndex + 1) % players.size();
+//        int bbIndex = (dealerIndex + 2) % players.size();
+//
+//        setSmallBlind(players.get(sbIndex));
+//        setBigBlind(players.get(bbIndex));
+//
+//
+//
     private void resetCards(ImageView... cards) {
 
         Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
@@ -1298,239 +1315,238 @@ public class PokerTableView implements ServerMessageListener{
             c.setOpacity(1.0);
         }
     }
-
-    private void dealNewHandForAllPlayers(ImageView deckImage, List<VBox> players) {
-        Timeline timeline = new Timeline();
-        int delay = 0;
-
-        ImageView[][] playerCards = new ImageView[players.size()][2];
-
-        for (int i = 0; i < players.size(); i++) {
-            HBox cards = (HBox) players.get(i).getChildren().get(6);
-            playerCards[i][0] = (ImageView) cards.getChildren().get(0);
-            playerCards[i][1] = (ImageView) cards.getChildren().get(1);
-        }
-
-        for (int i = 0; i < players.size(); i++) {
-            ImageView target = playerCards[i][0];
-            timeline.getKeyFrames().add(
-                    new KeyFrame(Duration.millis(delay += 300),
-                            e -> dealCardTo(target, deckImage, animationLayer))
-            );
-        }
-
-        timeline.getKeyFrames().add(
-                new KeyFrame(Duration.millis(delay += 300),
-                        e -> dealCardTo(h1, deckImage, animationLayer))
-        );
-
-        for (int i = 0; i < players.size(); i++) {
-            ImageView target = playerCards[i][1];
-            timeline.getKeyFrames().add(
-                    new KeyFrame(Duration.millis(delay += 300),
-                            e -> dealCardTo(target, deckImage, animationLayer))
-            );
-        }
-
-        timeline.getKeyFrames().add(
-                new KeyFrame(Duration.millis(delay += 300),
-                        e -> dealCardTo(h2, deckImage, animationLayer))
-        );
-
-        timeline.setOnFinished(ev -> {
-            String a = deck.draw();
-            String b = deck.draw();
-
-            Image heroA = new Image(getClass().getResourceAsStream("/cards/" + a));
-            Image heroB = new Image(getClass().getResourceAsStream("/cards/" + b));
-
-            h1.setVisible(true);
-            h2.setVisible(true);
-
-            flipCard(h1, heroA);
-            flipCard(h2, heroB);
-        });
-
-        timeline.play();
-    }
-
-    private void collectAllCardsToDeck(
-            Pane animationLayer,
-            ImageView deckImage,
-            ImageView[] boardCards,
-            java.util.List<VBox> players,
-            ImageView h1,
-            ImageView h2
-    ) {
-        SequentialTransition seq = new SequentialTransition();
-
-        Platform.runLater(() -> {
-            for (ImageView card : boardCards) {
-                if (!card.isVisible()) continue;
-
-                ImageView flying = new ImageView(card.getImage());
-                flying.setFitWidth(card.getFitWidth());
-                flying.setFitHeight(card.getFitHeight());
-
-                animationLayer.getChildren().add(flying);
-
-                Bounds fromB = card.localToScene(card.getBoundsInLocal());
-                Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
-
-                Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
-                Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
-
-                flying.setLayoutX(start.getX());
-                flying.setLayoutY(start.getY());
-
-                TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
-                tt.setToX(end.getX() - start.getX());
-                tt.setToY(end.getY() - start.getY());
-
-                tt.setOnFinished(ev -> {
-                    animationLayer.getChildren().remove(flying);
-                    card.setVisible(false);
-                });
-
-                seq.getChildren().add(tt);
-            }
-
-            for (VBox p : players) {
-                HBox cards = (HBox) p.getChildren().get(6);
-                ImageView c1 = (ImageView) cards.getChildren().get(0);
-                ImageView c2 = (ImageView) cards.getChildren().get(1);
-
-                for (ImageView card : new ImageView[] {c1, c2}) {
-                    if (!card.isVisible()) continue;
-
-                    ImageView flying = new ImageView(card.getImage());
-                    flying.setFitWidth(card.getFitWidth());
-                    flying.setFitHeight(card.getFitHeight());
-
-                    animationLayer.getChildren().add(flying);
-
-                    Bounds fromB = card.localToScene(card.getBoundsInLocal());
-                    Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
-
-                    Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
-                    Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
-
-                    flying.setLayoutX(start.getX());
-                    flying.setLayoutY(start.getY());
-
-                    TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
-                    tt.setToX(end.getX() - start.getX());
-                    tt.setToY(end.getY() - start.getY());
-
-                    tt.setOnFinished(ev -> {
-                        animationLayer.getChildren().remove(flying);
-                        card.setVisible(false);
-                    });
-
-                    seq.getChildren().add(tt);
-                }
-            }
-
-            for (ImageView hero : new ImageView[]{h1, h2}) {
-                if (!hero.isVisible()) continue;
-
-                ImageView flying = new ImageView(hero.getImage());
-                flying.setFitWidth(hero.getFitWidth());
-                flying.setFitHeight(hero.getFitHeight());
-
-                animationLayer.getChildren().add(flying);
-
-                Bounds fromB = hero.localToScene(hero.getBoundsInLocal());
-                Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
-
-                Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
-                Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
-
-                flying.setLayoutX(start.getX());
-                flying.setLayoutY(start.getY());
-
-                TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
-                tt.setToX(end.getX() - start.getX());
-                tt.setToY(end.getY() - start.getY());
-
-                tt.setOnFinished(ev -> {
-                    animationLayer.getChildren().remove(flying);
-                    hero.setVisible(false);
-                });
-
-                seq.getChildren().add(tt);
-            }
-
-            seq.setOnFinished(ev -> {
-                deck = new Deck();
-
-                rotateDealer(players);
-
-                assignBlinds(players);
-
-                dealNewHandForAllPlayers(deckImage, players);
-
-                autoDealBoard(deckImage,
-                        boardCards[0], boardCards[1], boardCards[2], boardCards[3],
-                        boardCards[4]
-                );
-
-                System.out.println("Deck has been shuffled");
-            });
-
-            seq.play();
-        });
-    }
-
-    private void autoDealBoard(ImageView deckImage,
-                               ImageView com1, ImageView com2, ImageView com3,
-                               ImageView com4, ImageView com5) {
-
-        Timeline t = new Timeline();
-        int d = 0;
-
-        t.getKeyFrames().add(new KeyFrame(Duration.millis(d+= 1200),
-                e -> dealFlop(deckImage, animationLayer, com1, com2, com3)));
-
-        t.getKeyFrames().add(new KeyFrame(Duration.millis(d += 1600),
-                e -> dealTurn(deckImage, animationLayer, com4)));
-
-        t.getKeyFrames().add(new KeyFrame(Duration.millis(d += 1600),
-                e -> dealRiver(deckImage, animationLayer, com5)));
-
-        t.play();
-    }
-
-    private void playFullHand(ImageView deckImage, List<VBox> players,
-                              ImageView com1, ImageView com2, ImageView com3, ImageView com4,
-                              ImageView com5) {
-        dealNewHandForAllPlayers(deckImage, players);
-
-        Timeline t = new Timeline();
-        int d = 0;
-        d += 3500;
-
-        t.getKeyFrames().add(
-                new KeyFrame(Duration.millis(d),
-                        e -> dealFlop(deckImage, animationLayer, com1, com2, com3))
-        );
-
-        d += 1800;
-
-        t.getKeyFrames().add(
-                new KeyFrame(Duration.millis(d),
-                        e -> dealTurn(deckImage, animationLayer, com4))
-        );
-
-        d += 1800;
-
-        t.getKeyFrames().add(
-                new KeyFrame(Duration.millis(d),
-                        e -> dealRiver(deckImage, animationLayer, com5))
-        );
-
-        t.play();
-    }
+//    private void dealNewHandForAllPlayers(ImageView deckImage, List<VBox> players) {
+//        Timeline timeline = new Timeline();
+//        int delay = 0;
+//
+//        ImageView[][] playerCards = new ImageView[players.size()][2];
+//
+//        for (int i = 0; i < players.size(); i++) {
+//            HBox cards = (HBox) players.get(i).getChildren().get(6);
+//            playerCards[i][0] = (ImageView) cards.getChildren().get(0);
+//            playerCards[i][1] = (ImageView) cards.getChildren().get(1);
+//        }
+//
+//        for (int i = 0; i < players.size(); i++) {
+//            ImageView target = playerCards[i][0];
+//            timeline.getKeyFrames().add(
+//                    new KeyFrame(Duration.millis(delay += 300),
+//                            e -> dealCardTo(target, deckImage, animationLayer))
+//            );
+//        }
+//
+//        timeline.getKeyFrames().add(
+//                new KeyFrame(Duration.millis(delay += 300),
+//                        e -> dealCardTo(h1, deckImage, animationLayer))
+//        );
+//
+//        for (int i = 0; i < players.size(); i++) {
+//            ImageView target = playerCards[i][1];
+//            timeline.getKeyFrames().add(
+//                    new KeyFrame(Duration.millis(delay += 300),
+//                            e -> dealCardTo(target, deckImage, animationLayer))
+//            );
+//        }
+//
+//        timeline.getKeyFrames().add(
+//                new KeyFrame(Duration.millis(delay += 300),
+//                        e -> dealCardTo(h2, deckImage, animationLayer))
+//        );
+//
+//        timeline.setOnFinished(ev -> {
+//            String a = deck.draw();
+//            String b = deck.draw();
+//
+//            Image heroA = new Image(getClass().getResourceAsStream("/cards/" + a));
+//            Image heroB = new Image(getClass().getResourceAsStream("/cards/" + b));
+//
+//            h1.setVisible(true);
+//            h2.setVisible(true);
+//
+//            flipCard(h1, heroA);
+//            flipCard(h2, heroB);
+//        });
+//
+//        timeline.play();
+//    }
+//
+//    private void collectAllCardsToDeck(
+//            Pane animationLayer,
+//            ImageView deckImage,
+//            ImageView[] boardCards,
+//            java.util.List<VBox> players,
+//            ImageView h1,
+//            ImageView h2
+//    ) {
+//        SequentialTransition seq = new SequentialTransition();
+//
+//        Platform.runLater(() -> {
+//            for (ImageView card : boardCards) {
+//                if (!card.isVisible()) continue;
+//
+//                ImageView flying = new ImageView(card.getImage());
+//                flying.setFitWidth(card.getFitWidth());
+//                flying.setFitHeight(card.getFitHeight());
+//
+//                animationLayer.getChildren().add(flying);
+//
+//                Bounds fromB = card.localToScene(card.getBoundsInLocal());
+//                Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
+//
+//                Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
+//                Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
+//
+//                flying.setLayoutX(start.getX());
+//                flying.setLayoutY(start.getY());
+//
+//                TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
+//                tt.setToX(end.getX() - start.getX());
+//                tt.setToY(end.getY() - start.getY());
+//
+//                tt.setOnFinished(ev -> {
+//                    animationLayer.getChildren().remove(flying);
+//                    card.setVisible(false);
+//                });
+//
+//                seq.getChildren().add(tt);
+//            }
+//
+//            for (VBox p : players) {
+//                HBox cards = (HBox) p.getChildren().get(6);
+//                ImageView c1 = (ImageView) cards.getChildren().get(0);
+//                ImageView c2 = (ImageView) cards.getChildren().get(1);
+//
+//                for (ImageView card : new ImageView[] {c1, c2}) {
+//                    if (!card.isVisible()) continue;
+//
+//                    ImageView flying = new ImageView(card.getImage());
+//                    flying.setFitWidth(card.getFitWidth());
+//                    flying.setFitHeight(card.getFitHeight());
+//
+//                    animationLayer.getChildren().add(flying);
+//
+//                    Bounds fromB = card.localToScene(card.getBoundsInLocal());
+//                    Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
+//
+//                    Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
+//                    Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
+//
+//                    flying.setLayoutX(start.getX());
+//                    flying.setLayoutY(start.getY());
+//
+//                    TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
+//                    tt.setToX(end.getX() - start.getX());
+//                    tt.setToY(end.getY() - start.getY());
+//
+//                    tt.setOnFinished(ev -> {
+//                        animationLayer.getChildren().remove(flying);
+//                        card.setVisible(false);
+//                    });
+//
+//                    seq.getChildren().add(tt);
+//                }
+//            }
+//
+//            for (ImageView hero : new ImageView[]{h1, h2}) {
+//                if (!hero.isVisible()) continue;
+//
+//                ImageView flying = new ImageView(hero.getImage());
+//                flying.setFitWidth(hero.getFitWidth());
+//                flying.setFitHeight(hero.getFitHeight());
+//
+//                animationLayer.getChildren().add(flying);
+//
+//                Bounds fromB = hero.localToScene(hero.getBoundsInLocal());
+//                Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
+//
+//                Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
+//                Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
+//
+//                flying.setLayoutX(start.getX());
+//                flying.setLayoutY(start.getY());
+//
+//                TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
+//                tt.setToX(end.getX() - start.getX());
+//                tt.setToY(end.getY() - start.getY());
+//
+//                tt.setOnFinished(ev -> {
+//                    animationLayer.getChildren().remove(flying);
+//                    hero.setVisible(false);
+//                });
+//
+//                seq.getChildren().add(tt);
+//            }
+//
+//            seq.setOnFinished(ev -> {
+//                deck = new Deck();
+//
+//                rotateDealer(players);
+//
+//                assignBlinds(players);
+//
+//                dealNewHandForAllPlayers(deckImage, players);
+//
+//                autoDealBoard(deckImage,
+//                        boardCards[0], boardCards[1], boardCards[2], boardCards[3],
+//                        boardCards[4]
+//                );
+//
+//                System.out.println("Deck has been shuffled");
+//            });
+//
+//            seq.play();
+//        });
+//    }
+//
+//    private void autoDealBoard(ImageView deckImage,
+//                               ImageView com1, ImageView com2, ImageView com3,
+//                               ImageView com4, ImageView com5) {
+//
+//        Timeline t = new Timeline();
+//        int d = 0;
+//
+//        t.getKeyFrames().add(new KeyFrame(Duration.millis(d+= 1200),
+//                e -> dealFlop(deckImage, animationLayer, com1, com2, com3)));
+//
+//        t.getKeyFrames().add(new KeyFrame(Duration.millis(d += 1600),
+//                e -> dealTurn(deckImage, animationLayer, com4)));
+//
+//        t.getKeyFrames().add(new KeyFrame(Duration.millis(d += 1600),
+//                e -> dealRiver(deckImage, animationLayer, com5)));
+//
+//        t.play();
+//    }
+//
+//    private void playFullHand(ImageView deckImage, List<VBox> players,
+//                              ImageView com1, ImageView com2, ImageView com3, ImageView com4,
+//                              ImageView com5) {
+//        dealNewHandForAllPlayers(deckImage, players);
+//
+//        Timeline t = new Timeline();
+//        int d = 0;
+//        d += 3500;
+//
+//        t.getKeyFrames().add(
+//                new KeyFrame(Duration.millis(d),
+//                        e -> dealFlop(deckImage, animationLayer, com1, com2, com3))
+//        );
+//
+//        d += 1800;
+//
+//        t.getKeyFrames().add(
+//                new KeyFrame(Duration.millis(d),
+//                        e -> dealTurn(deckImage, animationLayer, com4))
+//        );
+//
+//        d += 1800;
+//
+//        t.getKeyFrames().add(
+//                new KeyFrame(Duration.millis(d),
+//                        e -> dealRiver(deckImage, animationLayer, com5))
+//        );
+//
+//        t.play();
+//    }
 
     private void showHelp() {
         overlay.setVisible(true);
@@ -1586,10 +1602,28 @@ public class PokerTableView implements ServerMessageListener{
         allInBtn.setDisable(!enabled);
     }
 
+
+@Override
     public void onServerMessage(String message) {
+        if (message.startsWith("HAND")) {
+            String[] p = message.split(" ");
+            Image c1 = loadCardImage(p[1]);
+            Image c2 = loadCardImage(p[2]);
 
+            Platform.runLater(() -> {
+                h1.setVisible(true);
+                h2.setVisible(true);
+                flipCard(h1, c1);
+                flipCard(h2, c2);
+            });
+            return;
+        }
         if (message.startsWith("GAME_STATE")) {
+            handleGameState(message);
+        }
+    }
 
+        private void handleGameState(String message) {
             String[] parts = message.split(" ");
             String currentPlayer = null;
 
@@ -1599,12 +1633,37 @@ public class PokerTableView implements ServerMessageListener{
                 }
             }
 
-            String myName = App.getSceneController().getClient().getPlayerName();
+            String myName = App.getSceneController()
+                    .getClient()
+                    .getPlayerName();
 
             boolean myTurn = myName.equals(currentPlayer);
 
             Platform.runLater(() -> setControlsEnabled(myTurn));
         }
-    }
+
+        private void showFlop(String[] msg) {
+            Image c1 = loadCardImage(msg[1]);
+            Image c2 = loadCardImage(msg[2]);
+            Image c3 = loadCardImage(msg[3]);
+
+            com1.setVisible(true);
+            com2.setVisible(true);
+            com3.setVisible(true);
+
+            com1.setImage(c1);
+            com2.setImage(c2);
+            com3.setImage(c3);
+        }
+
+        private void showTurn(String card) {
+            com4.setVisible(true);
+            com4.setImage(loadCardImage(card));
+        }
+
+        private void showRiver(String card) {
+            com5.setVisible(true);
+            com5.setImage(loadCardImage(card));
+        }
 }
 
