@@ -109,13 +109,11 @@ public class SceneController {
     }
 
     private void handleServerMessage(String message) {
-        if (message.equals("GameStarted")) {
-            Platform.runLater(this::switchToPokerTable);
-            return;
-        }
-        if (messageListener != null) {
-            messageListener.onServerMessage(message);
-        }
+        Platform.runLater(() -> {
+            if (messageListener != null) {
+                messageListener.onServerMessage(message);
+            }
+        });
     }
 
     public void connectToServer(String serverIP, int serverPort, String playerName) {
