@@ -19,14 +19,8 @@ public class HostLobbyController {
     @FXML private TextField smallBlindField;
     @FXML private TextField startingCashField;
     @FXML
-
     private void onBackClicked() throws IOException {
         App.getSceneController().switchToMainMenu();
-    }
-    @FXML
-    private void onStartGameClicked() {
-        PokerClient client = App.getSceneController().getClient();
-        client.sendMessage("StartGame");
     }
     @FXML
     private void onStartServerClicked() throws IOException {

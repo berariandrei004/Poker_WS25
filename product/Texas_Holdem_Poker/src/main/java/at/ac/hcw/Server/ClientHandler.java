@@ -57,8 +57,8 @@ public class ClientHandler implements Runnable {
                     MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
                     sendPlayerListToThisClient();
                 } else if (message.equals("StartGame")) {
-                    MainPokerServer.broadcast("GameStarted");
                     MainPokerServer.getGame().startGame();
+                    MainPokerServer.broadcast("GameStarted");
                 } else {
                     // 👉 alle anderen Commands
                     Player current = MainPokerServer.getGame().getCurrentPlayer();

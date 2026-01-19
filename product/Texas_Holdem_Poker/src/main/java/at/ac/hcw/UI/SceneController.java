@@ -21,9 +21,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.IOException;
 import java.util.Arrays;
+
 import java.util.List;
 
 public class SceneController {
@@ -33,12 +33,9 @@ public class SceneController {
     private Process serverProcess;
     private PokerClient client;
     PokerTableView tableView = new PokerTableView();
-
-
-
     private ServerMessageListener messageListener;
 
-    public PokerClient getClient () {
+    public PokerClient getClient() {
         return client;
     }
 
@@ -53,18 +50,18 @@ public class SceneController {
             serverProcess.destroy();
         }
     }
+
     public void switchToGeneralLobbyMenu() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("generalLobbyMenu.fxml"));
         Parent root = loader.load();
-
         GeneralLobbyController controller = loader.getController();
         setMessageListener(controller);
-
         scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
         System.out.println("Switched to generalLobby");
     }
+
     public void switchToMainMenu() throws IOException {
         root = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
         scene = new Scene(root);
@@ -108,7 +105,6 @@ public class SceneController {
             Platform.runLater(this::switchToPokerTable);
             return;
         }
-
         if (messageListener != null) {
             messageListener.onServerMessage(message);
         }
@@ -118,7 +114,6 @@ public class SceneController {
         if (client == null) {
             client = new PokerClient(serverIP, serverPort);
         }
-
         new Thread(() -> {
             try {
                 if (!client.connect()) {
@@ -138,11 +133,12 @@ public class SceneController {
                     }
                 });
 
-                // DAUERHAFTES LISTEN
                 String message;
                 while ((message = client.receiveMessage()) != null) {
                     String finalMessage = message;
-                    Platform.runLater(() -> handleServerMessage(finalMessage));
+                    Platform.runLater(() ->
+                            handleServerMessage(finalMessage)
+                    );
                 }
 
             } catch (IOException e) {
@@ -150,5 +146,4 @@ public class SceneController {
             }
         }).start();
     }
-
 }
