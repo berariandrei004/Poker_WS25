@@ -970,7 +970,7 @@ public class PokerTableView implements ServerMessageListener{
     private void onNewRound() {
         System.out.println("NEW_ROUND");
 
-        resetCards(h1, h2);
+        resetCards(h1, h2, com1, com2, com3, com4, com5);
         setControlsEnabled(false);
     }
 

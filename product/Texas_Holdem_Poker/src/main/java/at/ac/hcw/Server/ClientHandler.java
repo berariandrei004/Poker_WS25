@@ -58,7 +58,7 @@ public class ClientHandler implements Runnable {
                     sendPlayerListToThisClient();
                 } else if (message.equals("StartGame")) {
                     MainPokerServer.broadcast("GameStarted");
-                    MainPokerServer.getGame().startNewRound();
+                    MainPokerServer.getGame().startGame();
                 } else {
                     // 👉 alle anderen Commands
                     Player current = MainPokerServer.getGame().getCurrentPlayer();
@@ -80,11 +80,8 @@ public class ClientHandler implements Runnable {
             System.out.println("Client verbindung abgebrochen");
         } finally {
             System.out.println("Client hat sich getrennt.");
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            MainPokerServer.getGame().removeListener(this);
+            MainPokerServer.removeClient(this);
         }
     }
     private void sendPlayerListToThisClient() {

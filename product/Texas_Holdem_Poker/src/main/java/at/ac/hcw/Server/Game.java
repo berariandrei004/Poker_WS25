@@ -9,7 +9,6 @@ public class Game {
     public ArrayList<Pot> pots;
     private int potIndex = 0;
     private State state = State.WAITING_FOR_PLAYERS;
-    private int currentBet;
     private int currentPlayerIndex;
     private final List<ClientHandler> listeners = new ArrayList<>();
     private int dealerIndex = 0;
@@ -75,7 +74,9 @@ public class Game {
     private int countActivePlayers() {
         int count = 0;
         for (Player p : players) {
-            if (p != null && !p.hasFolded()) count++;
+            if (p != null && !p.hasFolded()) {
+                count++;
+            }
         }
         return count;
     }
@@ -229,7 +230,6 @@ public class Game {
 
                 player.call(diff);
                 mainPot.raisePot(diff);
-                currentBet = mainPot.getHighestBet();
 
                 response = "CALL " + diff;
                 break;
@@ -249,7 +249,6 @@ public class Game {
 
                 player.raise(raiseAmount);
                 mainPot.raisePot(raiseAmount);
-                currentBet = mainPot.getHighestBet();
 
                 response = "RAISE " + raiseAmount;
                 break;
@@ -274,7 +273,6 @@ public class Game {
             case "ALLIN": {
                 int amount = player.allIn();
                 mainPot.raisePot(amount);
-                currentBet = mainPot.getHighestBet();
                 response = "ALLIN " + amount;
                 break;
             }
@@ -285,15 +283,20 @@ public class Game {
 
         currentPlayerIndex = getNextActivePlayer();
 
-        if (bettingRoundFinished()) {
+        if (currentPlayerIndex == -1) {
             advanceState();
-        } else {
-            broadcastGameState();
+            return response;
         }
 
         if (countActivePlayers() == 1) {
             showdown();
             return "WIN_BY_FOLD";
+        }
+
+        if (bettingRoundFinished()) {
+            advanceState();
+        } else {
+            broadcastGameState();
         }
 
         return response;
@@ -352,7 +355,6 @@ public class Game {
         bb.raise(bigBlind);
         mainPot.raisePot(bigBlind);
 
-        currentBet = bigBlind;
         currentPlayerIndex = (bbIndex + 1) % players.length;
     }
 
@@ -372,7 +374,12 @@ public class Game {
         sb.append("state=").append(state);
         sb.append(" pot=").append(pots.get(0).getMoney());
         sb.append(" highestBet=").append(pots.get(0).getHighestBet());
-        sb.append(" currentPlayer=").append(players[currentPlayerIndex].getName());
+        if (currentPlayerIndex >= 0 && players[currentPlayerIndex] != null) {
+            sb.append(" currentPlayer=").append(players[currentPlayerIndex].getName());
+        }
+        else {
+            sb.append(" currentPlayer=NONE");
+        }
 
         return sb.toString();
     }
@@ -390,8 +397,6 @@ public class Game {
                 p.receiveCard(c3, 4);
             }
         }
-
-        currentBet = 0;
         resetPlayerBets();
         currentPlayerIndex = getNextActivePlayer();
         setState(State.FLOP_BETTING);
@@ -407,8 +412,6 @@ public class Game {
                 p.receiveCard(c4, 5);
             }
         }
-
-        currentBet = 0;
         resetPlayerBets();
         currentPlayerIndex = getNextActivePlayer();
         setState(State.TURN_BETTING);
@@ -425,7 +428,6 @@ public class Game {
             }
         }
 
-        currentBet = 0;
         resetPlayerBets();
         currentPlayerIndex = getNextActivePlayer();
 
@@ -491,7 +493,6 @@ public class Game {
         int index = (currentPlayerIndex + 1) % players.length;
 
         for (int i = 0; i < players.length; i++) {
-
             Player p = players[index];
 
             if (p != null && !p.hasFolded() && !p.isAllin()) {
@@ -501,7 +502,7 @@ public class Game {
             index = (index + 1) % players.length;
         }
 
-        // Kein Spieler mehr, der handeln darf
+        // Niemand mehr handlungsfähig
         return -1;
     }
 
