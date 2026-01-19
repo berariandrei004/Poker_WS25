@@ -104,6 +104,11 @@ public class SceneController {
     }
 
     private void handleServerMessage(String message) {
+        if (message.equals("GameStarted")) {
+            Platform.runLater(this::switchToPokerTable);
+            return;
+        }
+
         if (messageListener != null) {
             messageListener.onServerMessage(message);
         }
