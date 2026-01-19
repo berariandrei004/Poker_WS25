@@ -51,6 +51,14 @@ public class SceneController {
         }
     }
 
+    public void sendStartGame() {
+        if (client == null) {
+            System.out.println("Kein Client verbunden – Spiel kann nicht gestartet werden.");
+            return;
+        }
+        client.sendMessage("START_GAME");
+    }
+
     public void switchToGeneralLobbyMenu() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("generalLobbyMenu.fxml"));
         Parent root = loader.load();
