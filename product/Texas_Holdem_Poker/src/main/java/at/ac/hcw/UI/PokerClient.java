@@ -59,6 +59,10 @@ public class PokerClient {
         out.println(msg);
     }
 
+    public String receiveMessage() throws IOException {
+        return in.readLine();
+    }
+
     public void receiveAndHandleMessage() throws IOException {
         String message = in.readLine();
         if (message != null) {

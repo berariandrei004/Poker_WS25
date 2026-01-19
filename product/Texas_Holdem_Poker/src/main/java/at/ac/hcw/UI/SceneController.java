@@ -134,7 +134,7 @@ public class SceneController {
                 });
 
                 String message;
-                while (true) {
+                while ((message = client.receiveMessage()) != null) {
                     client.receiveAndHandleMessage();
                 }
 
