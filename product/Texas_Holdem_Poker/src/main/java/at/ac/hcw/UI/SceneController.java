@@ -130,14 +130,6 @@ public class SceneController {
                 client.setPlayerName(playerName);
                 client.sendMessage("PlayerName:" + playerName);
 
-                Platform.runLater(() -> {
-                    try {
-                        switchToGeneralLobbyMenu();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-
                 // DAUERHAFTES LISTEN
                 String message;
                 while ((message = client.receiveMessage()) != null) {
