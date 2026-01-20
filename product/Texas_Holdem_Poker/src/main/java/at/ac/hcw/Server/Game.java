@@ -120,7 +120,7 @@ public class Game {
                     player.call(toCall);
                     mainPot.raisePot(toCall);
                     player.setHasActed(true);
-                    broadcastToAll("CURRENT_BET " + currentBet);
+                    //broadcastToAll("CURRENT_BET " + currentBet);
                 } else {
                     player.check();
                 }
@@ -131,7 +131,7 @@ public class Game {
                 player.call(toCall);
                 mainPot.raisePot(toCall);
                 player.setHasActed(true);
-                broadcastToAll("CURRENT_BET " + currentBet);
+                //broadcastToAll("CURRENT_BET " + currentBet);
                 break;
 
             case "RAISE":
@@ -147,7 +147,7 @@ public class Game {
                 currentBet = player.getBet(); // Neue High Bet
                 player.setHasActed(true);
                 opponent.setHasActed(false);
-                broadcastToAll("CURRENT_BET " + currentBet);
+                //broadcastToAll("CURRENT_BET " + currentBet);
                 break;
 
             case "ALLIN":
@@ -161,7 +161,7 @@ public class Game {
                 if (player.getBet() > opponent.getBet()) {
                     opponent.setHasActed(false);
                 }
-                broadcastToAll("CURRENT_BET " + currentBet);
+                //broadcastToAll("CURRENT_BET " + currentBet);
                 break;
         }
 
@@ -319,6 +319,7 @@ public class Game {
             // 2. Wenn der Spieler noch nicht gehandelt hat -> Runde nicht vorbei
             // (Beispiel: Flop wird gelegt, Einsätze sind 0=0, aber P1 muss erst checken)
             if (!p.hasActed()) {
+                System.out.println("Player: " + p.getName() + "has not acted yet");
                 return false;
             }
 

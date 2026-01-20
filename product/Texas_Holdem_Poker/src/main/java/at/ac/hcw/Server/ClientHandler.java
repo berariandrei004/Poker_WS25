@@ -42,7 +42,6 @@ public class ClientHandler implements Runnable {
             // Initialer Handshake
             sendMessage("LobbySettings:" + MainPokerServer.getLobbyId() + ";" + MainPokerServer.getBigBlind() + ";" +
                     MainPokerServer.getSmallBlind() + ";" + MainPokerServer.getStartingCash() + ";" + MainPokerServer.getMaxClients());
-            sendPlayerListToThisClient();
             String message;
             while ((message = in.readLine()) != null) {
                 System.out.println("Server empfängt von " + playerName + ": " + message);
@@ -56,6 +55,7 @@ public class ClientHandler implements Runnable {
                     MainPokerServer.getGame().addListener(this); // WICHTIG!
 
                     MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
+                    sendPlayerListToThisClient();
 
                 } else if (message.equals("StartGame")) {
                     MainPokerServer.broadcast("GameStarted");
