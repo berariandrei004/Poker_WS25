@@ -60,7 +60,7 @@ public class Game {
 
         for (Player p : players) {
             if (p.getBudget() < bigBlind) {
-                break;
+                return;
             }
         }
 
@@ -353,7 +353,7 @@ public class Game {
 
         // Sonderfall: Wenn nur noch 1 Spieler (oder 0) aktiv ist, ist die Wettrunde technisch vorbei
         // (wird aber meist schon vorher durch fold-check abgefangen)
-        return activePlayers >= 1;
+        return activePlayers > 1;
     }
 
     private Player getOpponent(Player p) {
