@@ -58,6 +58,12 @@ public class Game {
             if (p != null) p.resetForNewRound();
         }
 
+        for (Player p : players) {
+            if (p.getBudget() < bigBlind) {
+                break;
+            }
+        }
+
         // Blinds setzen (Dealer rotiert am Ende)
         int sbIndex = dealerIndex; // Im Heads-Up ist Dealer oft Small Blind preflop, aber wir machen Dealer = Button = SB
         int bbIndex = (dealerIndex + 1) % 2;
