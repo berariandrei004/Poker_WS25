@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable {
             // Initialer Handshake
             sendMessage("LobbySettings:" + MainPokerServer.getLobbyId() + ";" + MainPokerServer.getBigBlind() + ";" +
                     MainPokerServer.getSmallBlind() + ";" + MainPokerServer.getStartingCash() + ";" + MainPokerServer.getMaxClients());
-
+            sendPlayerListToThisClient();
             String message;
             while ((message = in.readLine()) != null) {
                 System.out.println("Server empfängt von " + playerName + ": " + message);
