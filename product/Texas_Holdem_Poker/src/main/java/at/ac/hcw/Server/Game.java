@@ -178,9 +178,11 @@ public class Game {
             }
         }
         if (isBettingRoundOver()) {
-            advanceGameStage();
+            boolean handEnded = advanceGameStage();
+            if (handEnded) {
+                return "OK"; // 🔥 NICHTS MEHR TUN
+            }
         } else {
-            // Zug wechselt
             currentPlayerIndex = (currentPlayerIndex + 1) % 2;
         }
 
@@ -219,44 +221,41 @@ public class Game {
         }
     }
 
-    private void advanceGameStage() {
-        // Reset Bets für nächste Runde (interne Logik, nicht Chips)
+    private boolean advanceGameStage() {
+
         resetForNewBettingRound();
         currentPlayerIndex = dealerIndex;
 
-        // Je nach Anzahl Karten auf Board
         int cardsOnBoard = board.size();
 
         if (cardsOnBoard == 0) {
-            // Flop
-            Card c1 = drawCard(); Card c2 = drawCard(); Card c3 = drawCard();
-            board.add(c1); board.add(c2); board.add(c3);
+            Card c1 = drawCard();
+            Card c2 = drawCard();
+            Card c3 = drawCard();
+            board.add(c1);
+            board.add(c2);
+            board.add(c3);
             broadcastToAll("FLOP " + c1 + " " + c2 + " " + c3);
-            resetForNewBettingRound();
-            currentBet = 0;
+            return false;
+
         } else if (cardsOnBoard == 3) {
-            // Turn
             Card c4 = drawCard();
             board.add(c4);
             broadcastToAll("TURN " + c4);
-            resetForNewBettingRound();
+            return false;
 
-            currentBet = 0;
         } else if (cardsOnBoard == 4) {
-            // River
             Card c5 = drawCard();
             board.add(c5);
             broadcastToAll("RIVER " + c5);
-            resetForNewBettingRound();
+            return false;
 
-            currentBet = 0;
         } else if (cardsOnBoard == 5) {
-            // Showdown
             performShowdown();
-            return; // Showdown startet neue Runde oder beendet
+            return true;
         }
 
-        broadcastUIUpdate();
+        return false;
     }
 
     private void performShowdown() {
