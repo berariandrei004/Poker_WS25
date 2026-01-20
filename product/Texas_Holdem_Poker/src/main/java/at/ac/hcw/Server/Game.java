@@ -216,16 +216,36 @@ public class Game {
             Card c1 = drawCard(); Card c2 = drawCard(); Card c3 = drawCard();
             board.add(c1); board.add(c2); board.add(c3);
             broadcastToAll("FLOP " + c1 + " " + c2 + " " + c3);
+            for (Player p : players) {
+                if (p != null) {
+                    p.resetBetForNextStage(); // Hier wird hasActed auf false gesetzt
+                }
+            }
+            currentBet = 0;
         } else if (cardsOnBoard == 3) {
             // Turn
             Card c4 = drawCard();
             board.add(c4);
             broadcastToAll("TURN " + c4);
+            for (Player p : players) {
+                if (p != null) {
+                    p.resetBetForNextStage(); // Hier wird hasActed auf false gesetzt
+                }
+            }
+
+            currentBet = 0;
         } else if (cardsOnBoard == 4) {
             // River
             Card c5 = drawCard();
             board.add(c5);
             broadcastToAll("RIVER " + c5);
+            for (Player p : players) {
+                if (p != null) {
+                    p.resetBetForNextStage(); // Hier wird hasActed auf false gesetzt
+                }
+            }
+
+            currentBet = 0;
         } else if (cardsOnBoard == 5) {
             // Showdown
             performShowdown();
