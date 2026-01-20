@@ -32,10 +32,8 @@ public class SceneController {
     private Parent root;
     private Process serverProcess;
     private PokerClient client;
-    PokerTableView tableView = new PokerTableView();
 
-
-
+    private PokerTableView currentTableView;
     private ServerMessageListener messageListener;
 
     public PokerClient getClient () {
@@ -87,9 +85,13 @@ public class SceneController {
     }
 
     public void switchToPokerTable() {
-        tableView = new PokerTableView();
-        Parent root = tableView.createView();
-        setMessageListener(tableView);
+        // Neue Instanz der View erstellen
+        currentTableView = new PokerTableView();
+        Parent root = currentTableView.createView();
+
+        // Controller als Listener setzen, der an die View delegiert
+        this.messageListener = currentTableView;
+
         Scene scene = new Scene(root, 900, 600);
         stage.setScene(scene);
         stage.show();
@@ -104,13 +106,9 @@ public class SceneController {
     }
 
     private void handleServerMessage(String message) {
-//        if (message.startsWith("HAND:")) {
-//            if (tableView != null) {
-//                tableView.onHandMessage(message.replace("HAND:", ""));
-//            }
-//            return;
-//        }
+       System.out.println("[Client received]: " + message); // Debugging
 
+        // Wenn wir im Spiel sind, an die TableView weiterleiten
         if (messageListener != null) {
             messageListener.onServerMessage(message);
         }
@@ -128,10 +126,10 @@ public class SceneController {
                     return;
                 }
 
-                System.out.println("Erfolgreich verbunden");
                 client.setPlayerName(playerName);
                 client.sendMessage("PlayerName:" + playerName);
 
+                // In Lobby wechseln
                 Platform.runLater(() -> {
                     try {
                         switchToGeneralLobbyMenu();
@@ -140,7 +138,7 @@ public class SceneController {
                     }
                 });
 
-                // DAUERHAFTES LISTEN
+                // Listen Loop
                 String message;
                 while ((message = client.receiveMessage()) != null) {
                     String finalMessage = message;

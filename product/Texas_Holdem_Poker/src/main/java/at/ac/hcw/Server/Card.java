@@ -32,34 +32,16 @@ public class Card implements Comparable<Card>{
 
     @Override
     public String toString() {
-        String stringSuit;
-        if (suit == 0) {
-            stringSuit = "diamonds";
-        }
-        else if (suit == 1) {
-            stringSuit = "hearts";
-        }
-        else if (suit == 2) {
-            stringSuit = "spades";
-        }
-        else {
-            stringSuit = "clubs";
-        }
+        String[] suits = {"diamonds", "hearts", "spades", "clubs"};
+        String s = suits[suit];
 
-        if (this.num == 12) {
-            return ("ace_of_" + stringSuit);
-        }
-        else if (num == 11) {
-            return ("king_of_" + stringSuit);
-        }
-        else if (num == 10) {
-            return ("queen_of_" + stringSuit);
-        }
-        else if (num == 9) {
-            return ("jack_of_" + stringSuit);
-        }
-        else {
-            return ((num+2) + "_of_" + stringSuit);
-        }
+        // Client erwartet: 2_of_clubs, jack_of_hearts, ace_of_spades
+        if (num == 12) return "ace_of_" + s;
+        if (num == 11) return "king_of_" + s;
+        if (num == 10) return "queen_of_" + s;
+        if (num == 9)  return "jack_of_" + s;
+
+        // num 0 ist die "2", num 8 ist die "10"
+        return (num + 2) + "_of_" + s;
     }
 }

@@ -21,7 +21,7 @@ public class ClientHandler implements Runnable {
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            System.out.println("Ich server, sende:" + message);
+            // System.out.println("Server sendet an " + playerName + ": " + message); // Debug
         }
     }
 
@@ -29,64 +29,60 @@ public class ClientHandler implements Runnable {
         return this.player;
     }
 
+    public String getPlayerName() {
+        return playerName;
+    }
+
     @Override
     public void run() {
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
+
+            // Initialer Handshake
             sendMessage("LobbySettings:" + MainPokerServer.getLobbyId() + ";" + MainPokerServer.getBigBlind() + ";" +
                     MainPokerServer.getSmallBlind() + ";" + MainPokerServer.getStartingCash() + ";" + MainPokerServer.getMaxClients());
 
             String message;
-
             while ((message = in.readLine()) != null) {
-                System.out.println("Client sagt: " + message);
+                System.out.println("Server empfängt von " + playerName + ": " + message);
+
                 if (message.startsWith("PlayerName:")) {
-                    int colonIndex = message.indexOf(":");
-                    this.playerName = message.substring(colonIndex + 1);
-                    this.player = new Player(
-                            playerName,
-                            MainPokerServer.getStartingCash()
-                    );
+                    this.playerName = message.split(":")[1];
+                    // Player Objekt erstellen und dem Game hinzufügen
+                    this.player = new Player(playerName, MainPokerServer.getStartingCash());
 
-                    // 🟢 Player ins Game einfügen
-                    MainPokerServer.getGame().addPlayer(player);
+                    MainPokerServer.getGame().addPlayer(this.player);
+                    MainPokerServer.getGame().addListener(this); // WICHTIG!
 
-                    // 🟢 Client als Listener fürs Game
-                    MainPokerServer.getGame().addListener(this);
                     MainPokerServer.broadcast("PlayerJoined:" + this.playerName);
-                    sendPlayerListToThisClient();
+
                 } else if (message.equals("StartGame")) {
                     MainPokerServer.broadcast("GameStarted");
                     MainPokerServer.getGame().startNewRound();
+
                 } else {
-                    // 👉 alle anderen Commands
-                    Player current = MainPokerServer.getGame().getCurrentPlayer();
-
-                    if (current != this.player) {
-                        sendMessage("ERROR Not your turn");
-                        continue;
+                    // Alle Spielbefehle (FOLD, CHECK, RAISE etc.)
+                    // werden direkt an das Game delegiert
+                    if (MainPokerServer.getGame() != null && this.player != null) {
+                        String response = MainPokerServer.getGame().handleCommand(this.player, message);
+                        // Optional: Bestätigung an Client zurück, aber UI reagiert meist auf Broadcasts
+                        if(response.startsWith("ERROR")) {
+                            sendMessage(response);
+                        }
                     }
-
-                    String response = MainPokerServer
-                            .getGame()
-                            .handleCommand(player, message);
-
-                    sendMessage(response);
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Client verbindung abgebrochen");
+            System.out.println("Verbindung zu " + playerName + " verloren.");
         } finally {
-            System.out.println("Client hat sich getrennt.");
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            MainPokerServer.removeClient(this);
+            //MainPokerServer.getGame().removeListener(this); // Listener entfernen
+            try { socket.close(); } catch (IOException e) {}
         }
     }
+
     private void sendPlayerListToThisClient() {
         synchronized (MainPokerServer.getClients()) {
             StringBuilder sb = new StringBuilder("PlayerList:");
@@ -99,13 +95,5 @@ public class ClientHandler implements Runnable {
             if (sb.length() > 11) sb.setLength(sb.length() - 1);
             sendMessage(sb.toString());
         }
-    }
-
-    public void sendPrivateCards(Card c1, Card c2) {
-        sendMessage("Handcards: " + c1 + " & " + c2);
-    }
-
-    private String getPlayerName() {
-        return this.playerName;
     }
 }
