@@ -370,30 +370,32 @@ public class PokerTableView implements ServerMessageListener {
     // --- Animation & Logic Methods ---
 
     private void dealPlayerHand(String card1Name, String card2Name) {
-        h1.setVisible(true);
+        h1.setVisible(true); // Container sichtbar machen (Karten bleiben noch kurz unsichtbar bis Animation startet)
         h2.setVisible(true);
 
-        // Animation von Deck zu Hand
-        animateCardDeal(deckImage, h1, loadCardImage(card1Name), 0);
-        animateCardDeal(deckImage, h2, loadCardImage(card2Name), 200);
+        // Wir übergeben 'true', weil wir unsere Karten sehen wollen
+        animateCardDeal(deckImage, h1, loadCardImage(card1Name), 0, true);
+        animateCardDeal(deckImage, h2, loadCardImage(card2Name), 200, true);
     }
 
     private void dealOpponentHand() {
-        // Animation von Deck zu Gegner (Rückseite)
         o1.setVisible(true);
         o2.setVisible(true);
         Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
 
-        animateCardDeal(deckImage, o1, back, 0);
-        animateCardDeal(deckImage, o2, back, 200);
+        // Wir übergeben 'false', weil Gegnerkarten verdeckt bleiben
+        animateCardDeal(deckImage, o1, back, 0, false);
+        animateCardDeal(deckImage, o2, back, 200, false);
     }
 
     private void dealCommunityCards(String[] cardNames, ImageView... targets) {
         int delay = 0;
         for (int i = 0; i < targets.length; i++) {
-            targets[i].setVisible(true);
+            // targets[i].setVisible(true); // Das macht animateCardDeal jetzt im finish
             Image front = loadCardImage(cardNames[i]);
-            animateCardDeal(deckImage, targets[i], front, delay);
+
+            // Community Cards sollen aufgedeckt werden -> true
+            animateCardDeal(deckImage, targets[i], front, delay, true);
             delay += 300;
         }
     }
@@ -448,7 +450,8 @@ public class PokerTableView implements ServerMessageListener {
         ft.play();
     }
 
-    private void animateCardDeal(ImageView source, ImageView target, Image finalImage, int delayMillis) {
+    // Neuer Parameter am Ende: boolean reveal (true = aufdecken, false = verdeckt lassen)
+    private void animateCardDeal(ImageView source, ImageView target, Image finalImage, int delayMillis, boolean reveal) {
         // Hilfs-ImageView für den Flug
         ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
         flying.setFitWidth(target.getFitWidth());
@@ -477,10 +480,16 @@ public class PokerTableView implements ServerMessageListener {
 
             tt.setOnFinished(ev -> {
                 animationLayer.getChildren().remove(flying);
-                target.setImage(finalImage); // Setze das finale Bild
-                // Kleiner Flip-Effekt wenn es eine offene Karte ist
-                if (!finalImage.getUrl().contains("backside")) {
+
+                // HIER WAR DER FEHLER: Wir nutzen jetzt das boolean Flag
+                if (reveal) {
+                    // Karte ist unsichtbar oder Rückseite -> Flip zur Vorderseite
+                    target.setVisible(true);
                     flipCard(target, finalImage);
+                } else {
+                    // Karte bleibt Rückseite (für Gegner)
+                    target.setImage(finalImage);
+                    target.setVisible(true);
                 }
             });
             tt.play();
