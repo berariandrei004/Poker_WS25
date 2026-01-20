@@ -183,7 +183,7 @@ public class Game {
         // 1. Pot Update
         broadcastToAll("POT " + pots.get(0).getMoney());
         // Current Bet Update
-        //broadcastToAll("CURRENT_BET " + currentBet);
+        broadcastToAll("CURRENT_BET " + currentBet);
 
         // 2. Chips und Active Player für JEDEN Client individuell berechnen
         for (ClientHandler ch : listeners) {
