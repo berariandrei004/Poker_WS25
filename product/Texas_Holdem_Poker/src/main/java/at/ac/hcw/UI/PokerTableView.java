@@ -374,8 +374,8 @@ public class PokerTableView implements ServerMessageListener {
         h2.setVisible(true);
 
         // Wir übergeben 'true', weil wir unsere Karten sehen wollen
-        animateCardDeal(deckImage, h1, loadCardImage(card1Name), 0, true);
-        animateCardDeal(deckImage, h2, loadCardImage(card2Name), 200, true);
+        animateCardDeal(deckImage, h1, loadCardImage(card1Name), 200, true);
+        animateCardDeal(deckImage, h2, loadCardImage(card2Name), 300, true);
     }
 
     private void dealOpponentHand() {
