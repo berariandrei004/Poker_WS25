@@ -207,9 +207,7 @@ public class Game {
 
     private void advanceGameStage() {
         // Reset Bets für nächste Runde (interne Logik, nicht Chips)
-        for(Player p : players) p.setBet(0);
-        currentBet = 0;
-        currentPlayerIndex = (dealerIndex + 1) % 2; // BB fängt post-flop an (oder SB? Standard: Position) -> Hier vereinfacht
+        resetForNewBettingRound();
 
         // Je nach Anzahl Karten auf Board
         int cardsOnBoard = board.size();
@@ -347,7 +345,7 @@ public class Game {
 
         // Sonderfall: Wenn nur noch 1 Spieler (oder 0) aktiv ist, ist die Wettrunde technisch vorbei
         // (wird aber meist schon vorher durch fold-check abgefangen)
-        return activePlayers > 0;
+        return activePlayers >= 1;
     }
 
     private Player getOpponent(Player p) {
@@ -406,6 +404,16 @@ public class Game {
 
     public Player getCurrentPlayer() {
         return players[currentPlayerIndex];
+    }
+
+    private void resetForNewBettingRound() {
+        for (Player p : players) {
+            if (p != null && !p.hasFolded()) {
+                p.setBet(0);
+                p.setHasActed(false);
+            }
+        }
+        currentBet = 0;
     }
 
     //Vergleiche bei gleichwertigen getPoints
