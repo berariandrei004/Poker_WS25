@@ -41,11 +41,6 @@ public class Game {
                 break;
             }
         }
-        // Wenn 2 Spieler da sind, könnte man automatisch starten oder warten
-        if (countActivePlayers() == 2) {
-            // Optional: Automatisch starten
-            // startNewRound();
-        }
     }
 
     public synchronized void startNewRound() {
