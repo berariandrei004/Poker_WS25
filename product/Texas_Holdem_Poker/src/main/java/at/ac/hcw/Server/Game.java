@@ -122,6 +122,7 @@ public class Game {
                     player.setHasActed(true);
                 } else {
                     player.check();
+                    player.setHasActed(true);
                 }
                 break;
 
