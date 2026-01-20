@@ -120,6 +120,7 @@ public class Game {
                     player.call(toCall);
                     mainPot.raisePot(toCall);
                     player.setHasActed(true);
+                    broadcastToAll("CURRENT_BET " + currentBet);
                 } else {
                     player.check();
                 }
@@ -130,6 +131,7 @@ public class Game {
                 player.call(toCall);
                 mainPot.raisePot(toCall);
                 player.setHasActed(true);
+                broadcastToAll("CURRENT_BET " + currentBet);
                 break;
 
             case "RAISE":
@@ -145,6 +147,7 @@ public class Game {
                 currentBet = player.getBet(); // Neue High Bet
                 player.setHasActed(true);
                 opponent.setHasActed(false);
+                broadcastToAll("CURRENT_BET " + currentBet);
                 break;
 
             case "ALLIN":
@@ -158,6 +161,7 @@ public class Game {
                 if (player.getBet() > opponent.getBet()) {
                     opponent.setHasActed(false);
                 }
+                broadcastToAll("CURRENT_BET " + currentBet);
                 break;
         }
 
@@ -178,6 +182,8 @@ public class Game {
     private void broadcastUIUpdate() {
         // 1. Pot Update
         broadcastToAll("POT " + pots.get(0).getMoney());
+        // Current Bet Update
+        //broadcastToAll("CURRENT_BET " + currentBet);
 
         // 2. Chips und Active Player für JEDEN Client individuell berechnen
         for (ClientHandler ch : listeners) {

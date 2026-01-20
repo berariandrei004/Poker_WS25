@@ -31,6 +31,7 @@ public class PokerTableView implements ServerMessageListener {
     private Label potLabel;
     private Label heroChipLabel;
     private Label opponentChipLabel;
+    private Label currentBetLabel;
 
     private Button foldBtn, checkBtn, raiseBtn, allInBtn;
     private Slider raiseSlider;
@@ -138,7 +139,8 @@ public class PokerTableView implements ServerMessageListener {
         // Pot Label
         potLabel = new Label("Pot: 0");
         potLabel.setStyle("-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: white; -fx-effect: dropshadow(gaussian, black, 2, 1, 0, 0);");
-
+        currentBetLabel = new Label("Aktueller Einsatz: 0");
+        currentBetLabel.setStyle("-fx-font-size: 16; -fx-text-fill: lightgreen; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 1, 1, 0, 0);");
         VBox tableContent = new VBox(20);
         tableContent.setAlignment(Pos.CENTER);
         tableContent.getChildren().addAll(boardRow, potLabel);
@@ -298,6 +300,13 @@ public class PokerTableView implements ServerMessageListener {
             String cmd = parts[0];
 
             switch (cmd) {
+                case "CURRENT_BET":
+                    // Nachricht Format: CURRENT_BET <amount>
+                    if (parts.length >= 2) {
+                        currentBetLabel.setText("Aktueller Einsatz: " + parts[1]);
+                    }
+                    break;
+
                 case "HAND":
                     // Format: HAND card1 card2
                     if (parts.length >= 3) {
