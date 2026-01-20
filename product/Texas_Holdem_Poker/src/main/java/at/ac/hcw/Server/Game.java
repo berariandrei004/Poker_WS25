@@ -163,6 +163,20 @@ public class Game {
         }
 
         // Nächster Spieler oder nächste Phase?
+
+        if (board.size() == 5 && currentBet == 0 && allBetsZero()) {
+            boolean everyoneChecked = true;
+            for (Player p : players) {
+                if (p != null && !p.hasFolded() && !p.hasActed()) {
+                    everyoneChecked = false;
+                }
+            }
+
+            if (everyoneChecked) {
+                advanceGameStage();
+                return "OK";
+            }
+        }
         if (isBettingRoundOver()) {
             advanceGameStage();
         } else {
@@ -403,6 +417,15 @@ public class Game {
             }
         }
         currentBet = 0;
+    }
+
+    private boolean allBetsZero() {
+        for (Player p : players) {
+            if (p != null && !p.hasFolded() && p.getBet() != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     //Vergleiche bei gleichwertigen getPoints
