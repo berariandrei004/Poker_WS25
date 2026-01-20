@@ -11,6 +11,7 @@ public class Player {
     private Card[] endHand = new Card[5];  // Die beste 5er Kombination
     private boolean isAllin = false;
     private boolean folded = false;
+    private boolean hasActed = false;
 
     public Player(String name, int budget) {
         this.name = name;
@@ -110,11 +111,26 @@ public class Player {
         }
     }
 
+    public boolean hasActed() {
+        return hasActed;
+    }
+
+    public void setHasActed(boolean hasActed) {
+        this.hasActed = hasActed;
+    }
+
+    // Update in deiner existierenden Methode:
+    public void resetBetForNextStage() {
+        this.bet = 0;
+        this.hasActed = false; // WICHTIG: Reset für Flop/Turn/River
+    }
+
     public void resetForNewRound() {
         bet = 0;
         totalBet = 0;
         folded = false;
         isAllin = false;
+        this.hasActed = false;
         Arrays.fill(hand, null);
         Arrays.fill(endHand, null);
     }

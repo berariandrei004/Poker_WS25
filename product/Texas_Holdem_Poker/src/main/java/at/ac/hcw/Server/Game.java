@@ -66,9 +66,10 @@ public class Game {
         Player bb = players[bbIndex];
 
         // Blinds abziehen
-        sb.raise(smallBlind); // Logik in Player muss angepasst werden (siehe unten)
+        sb.raise(smallBlind);
         bb.raise(bigBlind);
-
+        sb.setHasActed(false);
+        bb.setHasActed(false);
         pots.get(0).raisePot(smallBlind + bigBlind);
         currentBet = bigBlind;
 
@@ -102,6 +103,7 @@ public class Game {
         if (player != players[currentPlayerIndex]) {
             return "ERROR Not your turn";
         }
+        Player opponent = getOpponent(player);
 
         switch (action) {
             case "FOLD":
@@ -117,6 +119,7 @@ public class Game {
                     int toCall = currentBet - player.getBet();
                     player.call(toCall);
                     mainPot.raisePot(toCall);
+                    player.setHasActed(true);
                 } else {
                     player.check();
                 }
@@ -126,6 +129,7 @@ public class Game {
                 int toCall = currentBet - player.getBet();
                 player.call(toCall);
                 mainPot.raisePot(toCall);
+                player.setHasActed(true);
                 break;
 
             case "RAISE":
@@ -139,6 +143,8 @@ public class Game {
                 player.raise(amount);
                 mainPot.raisePot(amount);
                 currentBet = player.getBet(); // Neue High Bet
+                player.setHasActed(true);
+                opponent.setHasActed(false);
                 break;
 
             case "ALLIN":
@@ -146,6 +152,11 @@ public class Game {
                 mainPot.raisePot(allInAmount);
                 if (player.getBet() > currentBet) {
                     currentBet = player.getBet();
+                }
+                player.setHasActed(true);
+                // Wenn All-In eine Erhöhung war (Raise), muss Gegner reagieren
+                if (player.getBet() > opponent.getBet()) {
+                    opponent.setHasActed(false);
                 }
                 break;
         }
@@ -269,15 +280,32 @@ public class Game {
     // --- Technical Helpers ---
 
     private boolean isBettingRoundOver() {
-        // Sehr vereinfacht: Wenn beide Bets gleich sind und nicht 0 (oder check-check auf 0)
-        // Echte Logik muss prüfen, ob jeder mindestens einmal gehandelt hat.
-        // Für dieses Beispiel: Wenn Bets gleich sind und Pot > Blinds (grobe Annäherung)
-        Player p1 = players[0];
-        Player p2 = players[1];
-        if (p1 == null || p2 == null) return false;
-        if (p1.hasFolded() || p2.hasFolded()) return true;
+        int activePlayers = 0;
 
-        return p1.getBet() == p2.getBet() && p1.getBet() == currentBet; // && beide haben gehandelt (TODO)
+        for (Player p : players) {
+            // 1. Wenn Spieler null oder gefoldet ist, ignorieren
+            if (p == null || p.hasFolded()) {
+                continue;
+            }
+
+            activePlayers++;
+
+            // 2. Wenn der Spieler noch nicht gehandelt hat -> Runde nicht vorbei
+            // (Beispiel: Flop wird gelegt, Einsätze sind 0=0, aber P1 muss erst checken)
+            if (!p.hasActed()) {
+                return false;
+            }
+
+            // 3. Wenn der Spieler NICHT All-In ist, muss sein Einsatz dem höchsten entsprechen
+            // (Ist er All-In, darf sein Einsatz kleiner sein)
+            if (!p.isAllin() && p.getBet() != currentBet) {
+                return false;
+            }
+        }
+
+        // Sonderfall: Wenn nur noch 1 Spieler (oder 0) aktiv ist, ist die Wettrunde technisch vorbei
+        // (wird aber meist schon vorher durch fold-check abgefangen)
+        return activePlayers > 0;
     }
 
     private Player getOpponent(Player p) {
