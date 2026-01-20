@@ -384,12 +384,12 @@ public class PokerTableView implements ServerMessageListener {
         Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
 
         // Wir übergeben 'false', weil Gegnerkarten verdeckt bleiben
-        animateCardDeal(deckImage, o1, back, 0, false);
-        animateCardDeal(deckImage, o2, back, 200, false);
+        animateCardDeal(deckImage, o1, back, 200, false);
+        animateCardDeal(deckImage, o2, back, 300, false);
     }
 
     private void dealCommunityCards(String[] cardNames, ImageView... targets) {
-        int delay = 0;
+        int delay = 300;
         for (int i = 0; i < targets.length; i++) {
             // targets[i].setVisible(true); // Das macht animateCardDeal jetzt im finish
             Image front = loadCardImage(cardNames[i]);
