@@ -120,7 +120,6 @@ public class Game {
                     player.call(toCall);
                     mainPot.raisePot(toCall);
                     player.setHasActed(true);
-                    //broadcastToAll("CURRENT_BET " + currentBet);
                 } else {
                     player.check();
                 }
@@ -131,7 +130,6 @@ public class Game {
                 player.call(toCall);
                 mainPot.raisePot(toCall);
                 player.setHasActed(true);
-                //broadcastToAll("CURRENT_BET " + currentBet);
                 break;
 
             case "RAISE":
@@ -147,7 +145,6 @@ public class Game {
                 currentBet = player.getBet(); // Neue High Bet
                 player.setHasActed(true);
                 opponent.setHasActed(false);
-                //broadcastToAll("CURRENT_BET " + currentBet);
                 break;
 
             case "ALLIN":
@@ -161,7 +158,6 @@ public class Game {
                 if (player.getBet() > opponent.getBet()) {
                     opponent.setHasActed(false);
                 }
-                //broadcastToAll("CURRENT_BET " + currentBet);
                 break;
         }
 

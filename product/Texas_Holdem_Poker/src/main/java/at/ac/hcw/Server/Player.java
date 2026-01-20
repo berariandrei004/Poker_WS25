@@ -117,6 +117,12 @@ public class Player {
 
     public void setHasActed(boolean hasActed) {
         this.hasActed = hasActed;
+        if (hasActed) {
+            System.out.println(this.name + "acted to True");
+        } else {
+            System.out.println(this.name + "acted to False");
+        }
+
     }
 
     // Update in deiner existierenden Methode:
