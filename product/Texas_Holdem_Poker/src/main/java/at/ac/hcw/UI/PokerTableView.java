@@ -6,1577 +6,499 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.layout.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
+public class PokerTableView implements ServerMessageListener {
 
-public class PokerTableView implements ServerMessageListener{
-    private Deck deck;
-    private ImageView h1;
-    private ImageView h2;
+    // UI Referenzen für Updates
+    private ImageView h1, h2; // Hero Cards
+    private ImageView o1, o2; // Opponent Cards
+    private ImageView com1, com2, com3, com4, com5; // Board Cards
+
+    private VBox heroBox;
+    private VBox opponentBox;
+
+    private Label potLabel;
+    private Label heroChipLabel;
+    private Label opponentChipLabel;
+
+    private Button foldBtn, checkBtn, raiseBtn, allInBtn;
+    private Slider raiseSlider;
     private Pane animationLayer;
     private ImageView deckImage;
     private StackPane overlay;
     private VBox helpWindow;
-    private Button foldBtn;
-    private Button checkBtn;
-    private Button raiseBtn;
-    private Button allInBtn;
 
+    private PokerClient client;
 
     public Parent createView() {
-        PokerClient client = App.getSceneController().getClient();
-        deck = new Deck();
+        this.client = App.getSceneController().getClient();
+
         BorderPane root = new BorderPane();
         animationLayer = new Pane();
-        animationLayer.setPickOnBounds(false);
-        deckImage = new ImageView(
-                new Image(getClass().getResourceAsStream("/cards/backside.jpg"))
-        );
+        animationLayer.setPickOnBounds(false); // Klicks gehen durch
 
-        root.setStyle("-fx-background-color: darkgreen;");
+        root.setStyle("-fx-background-color: #2b2b2b;"); // Dunklerer Hintergrund für Kontrast
 
-        //Community Cards
-        HBox communityCards = new HBox(10);
-        communityCards.setAlignment(Pos.CENTER);
+        // 1. Spielfeld Setup (Tisch & Karten)
+        StackPane tableArea = createTableArea();
+        root.setCenter(tableArea);
 
-        Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
+        // 2. Spieler Setup (2 Spieler Modus)
+        // Gegner (Oben)
+        opponentBox = createPlayerBox("Gegner", 0, false); // Karten verdeckt
+        HBox opponentContainer = new HBox(opponentBox);
+        opponentContainer.setAlignment(Pos.CENTER);
+        opponentContainer.setPadding(new Insets(20));
+        root.setTop(opponentContainer);
 
-        ImageView com1 = new ImageView(back);
-        ImageView com2 = new ImageView(back);
-        ImageView com3 = new ImageView(back);
-        ImageView com4 = new ImageView(back);
-        ImageView com5 = new ImageView(back);
+        // Hero (Unten) + Controls
+        heroBox = createPlayerBox("Du", 0, true); // Karten placeholders sichtbar
+        VBox bottomContainer = new VBox(20);
+        bottomContainer.setAlignment(Pos.CENTER);
 
-        for (ImageView c : new ImageView[]{com1, com2, com3, com4, com5}) {
-            c.setFitWidth(90);
-            c.setFitHeight(130);
+        // Controls erstellen
+        Node controls = createControls();
+        bottomContainer.getChildren().addAll(heroBox, controls);
+        bottomContainer.setPadding(new Insets(20));
+        root.setBottom(bottomContainer);
 
-            c.setImage(back);
-            c.setVisible(false);
-        }
+        // Referenzen auf die Karten holen (Hack für einfachen Zugriff)
+        extractCardReferences();
 
-        communityCards.getChildren().addAll(com1, com2, com3, com4, com5);
+        // Overlay Menü Initialisieren
+        createOverlayMenu(root);
 
-        //Pot
-        Label potLabel = new Label("Pot: 0");
-        potLabel.setStyle("-fx-font-size: 18; -fx-text-fill: white;");
-
-        //player top
-        VBox topPlayer = createPlayerBox(
-                "Player 2", 1500, false,
-                null, null
-        );
-
-
-        //player left
-        VBox leftPlayer = createPlayerBox(
-                "Player 3", 1200, false,
-                null, null
-        );
-
-        ((Circle) leftPlayer.getChildren().get(0)).setVisible(true);
-        setDealer(leftPlayer);
-
-        //player right
-        VBox rightPlayer = createPlayerBox(
-                "Player 4", 1800, false,
-                null, null
-        );
-
-        List<VBox> players = Arrays.asList(
-                leftPlayer,
-                topPlayer,
-                rightPlayer
-        );
-
-        //Player hand cards
-        HBox playerHand = new HBox(10);
-        playerHand.setAlignment(Pos.CENTER);
-
-        h1 = new ImageView(back);
-        h2 = new ImageView(back);
-
-        h1.setFitWidth(90);
-        h1.setFitHeight(130);
-        h1.setPreserveRatio(true);
-
-        h2.setFitWidth(90);
-        h2.setFitHeight(130);
-        h2.setPreserveRatio(true);
-
-        h1.setVisible(false);
-        h2.setVisible(false);
-
-        playerHand.getChildren().addAll(h1, h2);
-
-        //Placeholder for cards
-        HBox leftCards = (HBox) leftPlayer.getChildren().get(6);
-        HBox topCards = (HBox) topPlayer.getChildren().get(6);
-        HBox rightCards = (HBox) rightPlayer.getChildren().get(6);
-
-        ImageView left1 = (ImageView) leftCards.getChildren().get(0);
-        ImageView left2 = (ImageView) leftCards.getChildren().get(1);
-
-        ImageView top1 = (ImageView) topCards.getChildren().get(0);
-        ImageView top2 = (ImageView) topCards.getChildren().get(1);
-
-        ImageView right1 = (ImageView) rightCards.getChildren().get(0);
-        ImageView right2 = (ImageView) rightCards.getChildren().get(1);
-
-        //Buttons
-        VBox rightControlBox = new VBox(12);
-        rightControlBox.setAlignment(Pos.BOTTOM_RIGHT);
-        rightControlBox.setStyle(
-                "-fx-background-color: rgba(0,0,0,0.35);" +
-                        "-fx-padding: 12;" +
-                        "-fx-background-radius: 15;"
-        );
-
-        foldBtn = new Button("Fold");
-        checkBtn = new Button("Check / Call");
-        raiseBtn = new Button("Raise");
-        allInBtn = new Button("All-In");
-
-        HBox row1 = new HBox(10);
-        row1.setAlignment(Pos.CENTER_RIGHT);
-        row1.getChildren().addAll(foldBtn, checkBtn);
-
-        HBox row2 = new HBox(10);
-        row2.setAlignment(Pos.CENTER_RIGHT);
-        row2.getChildren().addAll(raiseBtn, allInBtn);
-
-        for (Button b : new Button[]{foldBtn, checkBtn, raiseBtn, allInBtn}) {
-            b.setMinWidth(120);
-            b.setMinHeight(38);
-            b.setStyle(
-                    "-fx-font-size: 14px;" +
-                            "-fx-font-weight: bold;" +
-                            "-fx-background-radius: 10;" +
-                            "-fx-background-color: linear-gradient(#ffffff, #cccccc);" +
-                            "-fx-border-color: #222;" +
-                            "-fx-border-width: 1;" +
-                            "-fx-border-radius: 10;"
-            );
-        }
-
-        //Raise Slider
-        Slider raiseSlider = new Slider(0, 500, 0);
-        raiseSlider.setShowTickLabels(true);
-        raiseSlider.setShowTickMarks(true);
-        raiseSlider.setMajorTickUnit(50);
-        raiseSlider.setMinorTickCount(5);
-        raiseSlider.setBlockIncrement(10);
-
-        Label raiseText = new Label("Raise auswählen:");
-        raiseText.setStyle("-fx-text-fill: white; -fx-font-size: 14;");
-
-        VBox raiseBox = new VBox(5);
-        raiseBox.setAlignment(Pos.CENTER_RIGHT);
-        raiseBox.getChildren().addAll(raiseText, raiseSlider);
-
-        Label betLabel = new Label("Bet: 0");
-
-        raiseSlider.valueProperty().addListener((obs, oldV, newV) ->
-                betLabel.setText("Bet: " + newV.intValue())
-        );
-
-        rightControlBox.getChildren().addAll(row1, row2, raiseBox);
-        BorderPane bottomArea = new BorderPane();
-        bottomArea.setRight(rightControlBox);
-
-        BorderPane bottom = new BorderPane();
-        bottom.setCenter(playerHand);
-        root.setRight(rightControlBox);
-
-        root.setBottom(bottom);
-
-        //Ovaler Tisch
-        StackPane tableArea = new StackPane();
-        tableArea.setAlignment(Pos.CENTER);
-
-        //Tisch
-        Region ovalTable = new Region();
-        ovalTable.setPrefSize(700, 350);
-        ovalTable.setStyle(
-                "-fx-background-color: #0b6623;" +
-                        "-fx-background-radius: 200;" +
-                        "-fx-border-color: #2b2b2b;" +
-                        "-fx-border-width: 6;" +
-                        "-fx-border-radius: 200;" +
-                        "-fx-effect: dropshadow(gaussian, black, 35, 0.6, 0, 0);"
-        );
-
-        //Deck
-        ImageView deckImage = new ImageView(
-                new Image(getClass().getResourceAsStream("/cards/backside.jpg"))
-        );
-        deckImage.setFitWidth(80);
-        deckImage.setFitHeight(120);
-
-        //deck-pos
-        HBox boardRow = new HBox(25);
-        boardRow.setAlignment(Pos.CENTER);
-        boardRow.getChildren().addAll(communityCards, deckImage);
-
-        //Pot
-        VBox tableContent = new VBox(15);
-        tableContent.setAlignment(Pos.CENTER);
-        tableContent.getChildren().setAll(boardRow, potLabel);
-
-        //forge
-        tableArea.getChildren().addAll(ovalTable, tableContent);
-
-        BorderPane table = new BorderPane();
-        table.setCenter(tableArea);
-        table.setLeft(leftPlayer);
-        table.setRight(rightPlayer);
-        table.setTop(topPlayer);
-        table.setBottom(playerHand);
-
-        root.setCenter(table);
-
-        //Menu Button
+        // Menu Button oben rechts
         Button menuButton = new Button("=");
-        menuButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
-        BorderPane topBar = new BorderPane();
-        topBar.setRight(menuButton);
-        topBar.setPadding(new Insets(10));
+        menuButton.setOnAction(e -> overlay.setVisible(true));
+        StackPane.setAlignment(menuButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(menuButton, new Insets(10));
 
-        root.setTop(topBar);
+        // Root zusammenbauen
+        StackPane rootStack = new StackPane(root, animationLayer, menuButton, overlay);
 
-        tableArea.getChildren().setAll(ovalTable, tableContent);
-
-        foldBtn.setOnAction(e -> {
-            client.sendMessage("FOLD");
-        });
-        checkBtn.setOnAction(e -> {
-            client.sendMessage("CHECK");
-        });
-        raiseBtn.setOnAction(e -> {
-            int amount = (int) raiseSlider.getValue();
-            client.sendMessage("RAISE " + amount);
-        });
-        allInBtn.setOnAction(e -> {
-            client.sendMessage("ALLIN");
-            setAllIn(leftPlayer, true);
-            setChips(leftPlayer, 0);
-
-            Image real1 = new Image(getClass().getResourceAsStream("/cards/5_of_clubs.jpg"));
-            Image real2  = new Image(getClass().getResourceAsStream("/cards/6_of_spades.jpg"));
-
-
-            flipCard(h1, real1);
-            flipCard(h2, real2);
-        });
-
-
-        //Scene
-        animationLayer.setPickOnBounds(false);
-
-        StackPane rootStack = new StackPane(root, animationLayer);
-
+        // Animation Layer Größe binden
         animationLayer.prefWidthProperty().bind(rootStack.widthProperty());
         animationLayer.prefHeightProperty().bind(rootStack.heightProperty());
 
-        overlay = new StackPane();
-        overlay.setVisible(false);
-        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
-
-        VBox popup = new VBox(20);
-        popup.setAlignment(Pos.CENTER);
-        popup.setPrefSize(400, 250);
-        popup.setStyle("-fx-background-color: lightgray; -fx-background-radius: 15;");
-
-        Button helpButton = new Button("Hilfe");
-        helpButton.setMinWidth(200);
-
-        helpButton.setOnAction(e -> helpWindow.setVisible(true));
-
-        Button exitButton = new Button("Spiel verlasen");
-        exitButton.setMinWidth(200);
-
-        popup.getChildren().addAll(helpButton, exitButton);
-        overlay.getChildren().add(popup);
-
-        rootStack.getChildren().add(overlay);
-
-        menuButton.setOnAction(e -> overlay.setVisible(true));
-
-        overlay.setOnMouseClicked(e -> {
-            if (e.getTarget() == overlay) {
-                helpWindow.setVisible(false);
-                overlay.setVisible(false);
-            }
-        });
-
-        exitButton.setOnAction(e -> {
-            //Platform.exit();
-            try {
-                onExitGameClicked();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        });
-
-
-        helpWindow = new VBox(15);
-        helpWindow.setAlignment(Pos.TOP_CENTER);
-        helpWindow.setPrefSize(520, 420);
-        helpWindow.setPadding(new Insets(18));
-        helpWindow.setVisible(false);
-        helpWindow.setStyle(
-                "-fx-background-color: rgba(30,30,30,0.92)" +
-                        "-fx-background-radius: 18;" +
-                        "-fx-effect: dropshadow(gaussain, black, 25, 0.5, 0, 0);"
-        );
-
-        Label title = new Label("Hilfe & Pokerhände");
-        title.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;");
-
-        Image helpImage = new Image(
-                getClass().getResourceAsStream("/pokerhands/poker_hands.png")
-        );
-
-        ImageView imageView = new ImageView(helpImage);
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(460);
-        imageView.setSmooth(true);
-
-        VBox contentBox = new VBox(15);
-        contentBox.setAlignment(Pos.TOP_CENTER);
-
-        Label picTitle = new Label("Texas Hold'em - Händeübersicht");
-        picTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16;");
-
-        contentBox.getChildren().addAll(picTitle, imageView);
-
-        ScrollPane scroll = new ScrollPane(contentBox);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent;");
-
-        Button backButton = new Button("Zurück zum Spiel");
-        backButton.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
-        backButton.setOnAction(e -> hideHelp());
-
-        helpWindow.getChildren().setAll(
-                title,
-                scroll,
-                backButton
-        );
-
-        overlay.getChildren().add(helpWindow);
-
-        //HIer waren stage.scene aufrufe
-
-        //Dealer rotate
-        final int[] dealerIndex = {0};
-
-        int sbIndex = (dealerIndex[0] + 1) % players.size();
-        setSmallBlind(players.get(sbIndex));
-
-        int bbIndex = (dealerIndex[0] + 2) % players.size();
-        setBigBlind(players.get(bbIndex));
-
-        //highlight current player
-        final int[] currentPlayer = {0};
-        highlightPlayer(players.get(currentPlayer[0]), true);
-
-//        raise.setOnAction(e -> {
-//            int delay = 0;
-//
-//            Timeline timeline = new Timeline(
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left1, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top1, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right1, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h1, deckImage, animationLayer)),
-//
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left2, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top2, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right2, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h2, deckImage, animationLayer))
-//            );
-//
-//            timeline.play();
-//
-//            timeline.setOnFinished(ev -> {
-//
-//                PauseTransition pause = new PauseTransition(Duration.millis(400));
-//
-//                pause.setOnFinished(e2 -> {
-//
-//                    String cardA = deck.draw();
-//                    String cardB = deck.draw();
-//
-//                    Image real1 = new Image(getClass().getResourceAsStream("/cards/" + cardA));
-//                    Image real2 = new Image(getClass().getResourceAsStream("/cards/" + cardB));
-//
-//                    flipCard(h1, real1);
-//                    flipCard(h2, real2);
-//
-//                });
-//
-//                pause.play();
-//            });
-//        });
-
-        //test buttons
-        Button flop = new Button("Flop");
-        rightControlBox.getChildren().add(flop);
-        Button turn = new Button("Turn");
-        rightControlBox.getChildren().add(turn);
-        Button river = new Button("River");
-        rightControlBox.getChildren().add(river);
-        Button newRound = new Button("New round");
-        rightControlBox.getChildren().add(newRound);
-        Button collect = new Button("Collect Cards");
-        rightControlBox.getChildren().add(collect);
-        Button playHand = new Button("Play Hand");
-        rightControlBox.getChildren().add(playHand);
-
-        flop.setOnAction(e -> dealFlop(deckImage, animationLayer, com1, com2, com3));
-        turn.setOnAction(e -> dealTurn(deckImage, animationLayer, com4));
-        river.setOnAction(e -> dealRiver(deckImage, animationLayer, com5));
-        newRound.setOnAction(e -> startNewRound(
-                players,
-                com1, com2, com3, com4, com5
-        ));
-        collect.setOnAction(e ->
-                collectAllCardsToDeck(
-                        animationLayer,
-                        deckImage,
-                        new ImageView[]{com1, com2, com3, com4, com5},
-                        players,
-                        h1, h2
-                )
-        );
-        playHand.setOnAction(e -> playFullHand(
-                deckImage,
-                players,
-                com1, com2, com3, com4, com5
-        ));
-
+        // Initialzustand: Buttons deaktiviert bis Server "YOUR_TURN" sendet
         setControlsEnabled(false);
 
         return rootStack;
     }
-//    public void start(Stage stage) {
-//        deck = new Deck();
-//        BorderPane root = new BorderPane();
-//        animationLayer = new Pane();
-//        animationLayer.setPickOnBounds(false);
-//        deckImage = new ImageView(
-//                new Image(getClass().getResourceAsStream("/cards/backside.jpg"))
-//        );
-//
-//        root.setStyle("-fx-background-color: darkgreen;");
-//
-//        //Community Cards
-//        HBox communityCards = new HBox(10);
-//        communityCards.setAlignment(Pos.CENTER);
-//
-//        Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
-//
-//        ImageView com1 = new ImageView(back);
-//        ImageView com2 = new ImageView(back);
-//        ImageView com3 = new ImageView(back);
-//        ImageView com4 = new ImageView(back);
-//        ImageView com5 = new ImageView(back);
-//
-//        for (ImageView c : new ImageView[]{com1, com2, com3, com4, com5}) {
-//            c.setFitWidth(90);
-//            c.setFitHeight(130);
-//
-//            c.setImage(back);
-//            c.setVisible(false);
-//        }
-//
-//        communityCards.getChildren().addAll(com1, com2, com3, com4, com5);
-//
-//        //Pot
-//        Label potLabel = new Label("Pot: 0");
-//        potLabel.setStyle("-fx-font-size: 18; -fx-text-fill: white;");
-//
-//        //player top
-//        VBox topPlayer = createPlayerBox(
-//                "Player 2", 1500, false,
-//                null, null
-//        );
-//
-//
-//        //player left
-//        VBox leftPlayer = createPlayerBox(
-//                "Player 3", 1200, false,
-//                null, null
-//        );
-//
-//        ((Circle) leftPlayer.getChildren().get(0)).setVisible(true);
-//        setDealer(leftPlayer);
-//
-//        //player right
-//        VBox rightPlayer = createPlayerBox(
-//                "Player 4", 1800, false,
-//                null, null
-//        );
-//
-//        java.util.List<VBox> players = java.util.Arrays.asList(
-//                leftPlayer,
-//                topPlayer,
-//                rightPlayer
-//        );
-//
-//        //Player hand cards
-//        HBox playerHand = new HBox(10);
-//        playerHand.setAlignment(Pos.CENTER);
-//
-//        h1 = new ImageView(back);
-//        h2 = new ImageView(back);
-//
-//        h1.setFitWidth(90);
-//        h1.setFitHeight(130);
-//        h1.setPreserveRatio(true);
-//
-//        h2.setFitWidth(90);
-//        h2.setFitHeight(130);
-//        h2.setPreserveRatio(true);
-//
-//        h1.setVisible(false);
-//        h2.setVisible(false);
-//
-//        playerHand.getChildren().addAll(h1, h2);
-//
-//        //Placeholder for cards
-//        HBox leftCards = (HBox) leftPlayer.getChildren().get(6);
-//        HBox topCards = (HBox) topPlayer.getChildren().get(6);
-//        HBox rightCards = (HBox) rightPlayer.getChildren().get(6);
-//
-//        ImageView left1 = (ImageView) leftCards.getChildren().get(0);
-//        ImageView left2 = (ImageView) leftCards.getChildren().get(1);
-//
-//        ImageView top1 = (ImageView) topCards.getChildren().get(0);
-//        ImageView top2 = (ImageView) topCards.getChildren().get(1);
-//
-//        ImageView right1 = (ImageView) rightCards.getChildren().get(0);
-//        ImageView right2 = (ImageView) rightCards.getChildren().get(1);
-//
-//        //Buttons
-//        VBox rightControlBox = new VBox(12);
-//        rightControlBox.setAlignment(Pos.BOTTOM_RIGHT);
-//        rightControlBox.setStyle(
-//                "-fx-background-color: rgba(0,0,0,0.35);" +
-//                        "-fx-padding: 12;" +
-//                        "-fx-background-radius: 15;"
-//        );
-//
-//        Button fold = new Button("Fold");
-//        Button check = new Button("Check / Call");
-//        Button raise = new Button("Raise");
-//        Button allIn = new Button("All-In");
-//
-//        HBox row1 = new HBox(10);
-//        row1.setAlignment(Pos.CENTER_RIGHT);
-//        row1.getChildren().addAll(fold, check);
-//
-//        HBox row2 = new HBox(10);
-//        row2.setAlignment(Pos.CENTER_RIGHT);
-//        row2.getChildren().addAll(raise, allIn);
-//
-//        for (Button b : new Button[]{fold, check, raise, allIn}) {
-//            b.setMinWidth(120);
-//            b.setMinHeight(38);
-//            b.setStyle(
-//                    "-fx-font-size: 14px;" +
-//                            "-fx-font-weight: bold;" +
-//                            "-fx-background-radius: 10;" +
-//                            "-fx-background-color: linear-gradient(#ffffff, #cccccc);" +
-//                            "-fx-border-color: #222;" +
-//                            "-fx-border-width: 1;" +
-//                            "-fx-border-radius: 10;"
-//            );
-//        }
-//
-//        //Raise Slider
-//        Slider raiseSlider = new Slider(0, 500, 0);
-//        raiseSlider.setShowTickLabels(true);
-//        raiseSlider.setShowTickMarks(true);
-//        raiseSlider.setMajorTickUnit(50);
-//        raiseSlider.setMinorTickCount(5);
-//        raiseSlider.setBlockIncrement(10);
-//
-//        Label raiseText = new Label("Raise auswählen:");
-//        raiseText.setStyle("-fx-text-fill: white; -fx-font-size: 14;");
-//
-//        VBox raiseBox = new VBox(5);
-//        raiseBox.setAlignment(Pos.CENTER_RIGHT);
-//        raiseBox.getChildren().addAll(raiseText, raiseSlider);
-//
-//        Label betLabel = new Label("Bet: 0");
-//
-//        raiseSlider.valueProperty().addListener((obs, oldV, newV) ->
-//                betLabel.setText("Bet: " + newV.intValue())
-//        );
-//
-//        rightControlBox.getChildren().addAll(row1, row2, raiseBox);
-//        BorderPane bottomArea = new BorderPane();
-//        bottomArea.setRight(rightControlBox);
-//
-//        BorderPane bottom = new BorderPane();
-//        bottom.setCenter(playerHand);
-//        root.setRight(rightControlBox);
-//
-//        root.setBottom(bottom);
-//
-//        //Ovaler Tisch
-//        StackPane tableArea = new StackPane();
-//        tableArea.setAlignment(Pos.CENTER);
-//
-//        //Tisch
-//        Region ovalTable = new Region();
-//        ovalTable.setPrefSize(700, 350);
-//        ovalTable.setStyle(
-//                "-fx-background-color: #0b6623;" +
-//                        "-fx-background-radius: 200;" +
-//                        "-fx-border-color: #2b2b2b;" +
-//                        "-fx-border-width: 6;" +
-//                        "-fx-border-radius: 200;" +
-//                        "-fx-effect: dropshadow(gaussian, black, 35, 0.6, 0, 0);"
-//        );
-//
-//        //Deck
-//        ImageView deckImage = new ImageView(
-//                new Image(getClass().getResourceAsStream("/cards/backside.jpg"))
-//        );
-//        deckImage.setFitWidth(80);
-//        deckImage.setFitHeight(120);
-//
-//        //deck-pos
-//        HBox boardRow = new HBox(25);
-//        boardRow.setAlignment(Pos.CENTER);
-//        boardRow.getChildren().addAll(communityCards, deckImage);
-//
-//        //Pot
-//        VBox tableContent = new VBox(15);
-//        tableContent.setAlignment(Pos.CENTER);
-//        tableContent.getChildren().setAll(boardRow, potLabel);
-//
-//        //forge
-//        tableArea.getChildren().addAll(ovalTable, tableContent);
-//
-//        BorderPane table = new BorderPane();
-//        table.setCenter(tableArea);
-//        table.setLeft(leftPlayer);
-//        table.setRight(rightPlayer);
-//        table.setTop(topPlayer);
-//        table.setBottom(playerHand);
-//
-//        root.setCenter(table);
-//
-//        //Menu Button
-//        Button menuButton = new Button("=");
-//        menuButton.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
-//        BorderPane topBar = new BorderPane();
-//        topBar.setRight(menuButton);
-//        topBar.setPadding(new Insets(10));
-//
-//        root.setTop(topBar);
-//
-//        tableArea.getChildren().setAll(ovalTable, tableContent);
-//
-//        fold.setOnAction(e -> System.out.println("Player folds"));
-//        check.setOnAction(e -> System.out.println("Player checks / calls"));
-//        allIn.setOnAction(e -> {
-//            System.out.println("Player goes ALL-IN!");
-//            setAllIn(leftPlayer, true);
-//            setChips(leftPlayer, 0);
-//
-//            Image real1 = new Image(getClass().getResourceAsStream("/cards/5_of_clubs.jpg"));
-//            Image real2  = new Image(getClass().getResourceAsStream("/cards/6_of_spades.jpg"));
-//
-//
-//            flipCard(h1, real1);
-//            flipCard(h2, real2);
-//        });
-//
-//        //Scene
-//        animationLayer.setPickOnBounds(false);
-//
-//        StackPane rootStack = new StackPane(root, animationLayer);
-//
-//        Scene scene = new Scene(rootStack, 900, 600);
-//
-//        animationLayer.prefWidthProperty().bind(scene.widthProperty());
-//        animationLayer.prefHeightProperty().bind(scene.heightProperty());
-//
-//        overlay = new StackPane();
-//        overlay.setVisible(false);
-//        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
-//
-//        VBox popup = new VBox(20);
-//        popup.setAlignment(Pos.CENTER);
-//        popup.setPrefSize(400, 250);
-//        popup.setStyle("-fx-background-color: lightgray; -fx-background-radius: 15;");
-//
-//        Button helpButton = new Button("Hilfe");
-//        helpButton.setMinWidth(200);
-//
-//        helpButton.setOnAction(e -> helpWindow.setVisible(true));
-//
-//        Button exitButton = new Button("Spiel verlasen");
-//        exitButton.setMinWidth(200);
-//
-//        popup.getChildren().addAll(helpButton, exitButton);
-//        overlay.getChildren().add(popup);
-//
-//        rootStack.getChildren().add(overlay);
-//
-//        menuButton.setOnAction(e -> overlay.setVisible(true));
-//
-//        overlay.setOnMouseClicked(e -> {
-//            if (e.getTarget() == overlay) {
-//                helpWindow.setVisible(false);
-//                overlay.setVisible(false);
-//            }
-//        });
-//
-//        exitButton.setOnAction(e -> {
-//            Platform.exit();
-//        });
-//
-//        helpWindow = new VBox(15);
-//        helpWindow.setAlignment(Pos.TOP_CENTER);
-//        helpWindow.setPrefSize(520, 420);
-//        helpWindow.setPadding(new Insets(18));
-//        helpWindow.setVisible(false);
-//        helpWindow.setStyle(
-//                "-fx-background-color: rgba(30,30,30,0.92)" +
-//                        "-fx-background-radius: 18;" +
-//                        "-fx-effect: dropshadow(gaussain, black, 25, 0.5, 0, 0);"
-//        );
-//
-//        Label title = new Label("Hilfe & Pokerhände");
-//        title.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;");
-//
-//        Image helpImage = new Image(
-//                getClass().getResourceAsStream("/pokerhands/poker_hands.png")
-//        );
-//
-//        ImageView imageView = new ImageView(helpImage);
-//        imageView.setPreserveRatio(true);
-//        imageView.setFitWidth(460);
-//        imageView.setSmooth(true);
-//
-//        VBox contentBox = new VBox(15);
-//        contentBox.setAlignment(Pos.TOP_CENTER);
-//
-//        Label picTitle = new Label("Texas Hold'em - Händeübersicht");
-//        picTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16;");
-//
-//        contentBox.getChildren().addAll(picTitle, imageView);
-//
-//        ScrollPane scroll = new ScrollPane(contentBox);
-//        scroll.setFitToWidth(true);
-//        scroll.setStyle("-fx-background-color: transparent;");
-//
-//        Button backButton = new Button("Zurück zum Spiel");
-//        backButton.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
-//        backButton.setOnAction(e -> hideHelp());
-//
-//        helpWindow.getChildren().setAll(
-//                title,
-//                scroll,
-//                backButton
-//        );
-//
-//        overlay.getChildren().add(helpWindow);
-//
-//        //HIer waren stage.scene aufrufe
-//
-//        //Dealer rotate
-//        final int[] dealerIndex = {0};
-//
-//        int sbIndex = (dealerIndex[0] + 1) % players.size();
-//        setSmallBlind(players.get(sbIndex));
-//
-//        int bbIndex = (dealerIndex[0] + 2) % players.size();
-//        setBigBlind(players.get(bbIndex));
-//
-//        //highlight current player
-//        final int[] currentPlayer = {0};
-//        highlightPlayer(players.get(currentPlayer[0]), true);
-//
-//        raise.setOnAction(e -> {
-//            System.out.println("Player raises to " + (int) raiseSlider.getValue());
-//
-//            int delay = 0;
-//
-//            Timeline timeline = new Timeline(
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left1, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top1, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right1, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h1, deckImage, animationLayer)),
-//
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(left2, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(top2, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(right2, deckImage, animationLayer)),
-//                    new KeyFrame(Duration.millis(delay += 300), ev -> dealCardTo(h2, deckImage, animationLayer))
-//            );
-//
-//            timeline.play();
-//
-//            timeline.setOnFinished(ev -> {
-//
-//                PauseTransition pause = new PauseTransition(Duration.millis(400));
-//
-//                pause.setOnFinished(e2 -> {
-//
-//                    String cardA = deck.draw();
-//                    String cardB = deck.draw();
-//
-//                    Image real1 = new Image(getClass().getResourceAsStream("/cards/" + cardA));
-//                    Image real2 = new Image(getClass().getResourceAsStream("/cards/" + cardB));
-//
-//                    flipCard(h1, real1);
-//                    flipCard(h2, real2);
-//
-//                });
-//
-//                pause.play();
-//            });
-//        });
-//
-//        //test buttons
-//        Button flop = new Button("Flop");
-//        rightControlBox.getChildren().add(flop);
-//        Button turn = new Button("Turn");
-//        rightControlBox.getChildren().add(turn);
-//        Button river = new Button("River");
-//        rightControlBox.getChildren().add(river);
-//        Button newRound = new Button("New round");
-//        rightControlBox.getChildren().add(newRound);
-//        Button collect = new Button("Collect Cards");
-//        rightControlBox.getChildren().add(collect);
-//        Button playHand = new Button("Play Hand");
-//        rightControlBox.getChildren().add(playHand);
-//
-//        flop.setOnAction(e -> dealFlop(deckImage, animationLayer, com1, com2, com3));
-//        turn.setOnAction(e -> dealTurn(deckImage, animationLayer, com4));
-//        river.setOnAction(e -> dealRiver(deckImage, animationLayer, com5));
-//        newRound.setOnAction(e -> startNewRound(
-//                players,
-//                com1, com2, com3, com4, com5
-//        ));
-//        collect.setOnAction(e ->
-//                collectAllCardsToDeck(
-//                        animationLayer,
-//                        deckImage,
-//                        new ImageView[]{com1, com2, com3, com4, com5},
-//                        players,
-//                        h1, h2
-//                )
-//        );
-//        playHand.setOnAction(e -> playFullHand(
-//                deckImage,
-//                players,
-//                com1, com2, com3, com4, com5
-//        ));
-//    }
 
-    private VBox createPlayerBox(String name, int chips, boolean showCards, Image card1, Image card2) {
-        VBox box = new VBox(5);
-        box.setAlignment(Pos.CENTER);
+    // --- Layout Helper ---
 
-        Circle dealer = new Circle (10);
-        dealer.setFill(Color.GOLD);
-        dealer.setVisible(false);
+    private StackPane createTableArea() {
+        StackPane tableArea = new StackPane();
 
-        //Small Blind
-        Label sbLabel = new Label("SB");
-        sbLabel.setTextFill(Color.LIGHTBLUE);
-        sbLabel.setVisible(false);
-
-        //Big Blind
-        Label bbLabel = new Label("BB");
-        bbLabel.setTextFill(Color.RED);
-        bbLabel.setVisible(false);
-
-        Label nameLabel = new Label (name);
-        Label chipLabel = new Label("Chips: " + chips);
-
-        Label allInLabel = new Label("ALL-IN");
-        allInLabel.setTextFill(Color.RED);
-        allInLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16;");
-        allInLabel.setVisible(false);
-
-        HBox cards = new HBox(5);
-        cards.setAlignment(Pos.CENTER);
-
-        Image back  = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
-
-        ImageView c1 = new ImageView(showCards ? card1 : back);
-        ImageView c2 = new ImageView(showCards ? card2 : back);
-
-        c1.setFitWidth(60);
-        c1.setFitHeight(90);
-        c2.setFitWidth(60);
-        c2.setFitHeight(90);
-
-        c1.setVisible(false);
-        c2.setVisible(false);
-
-        cards.getChildren().addAll(c1, c2);
-
-        box.getChildren().addAll(dealer, sbLabel, bbLabel, nameLabel, chipLabel, allInLabel, cards);
-        box.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-padding: 5; -fx-border-radius: 5; -fx-background-radius: 5;");
-
-        return box;
-    }
-
-    private void markCurrentPlayer(VBox playerBox, boolean active) {
-        if (active) {
-            playerBox.setStyle("-fx-background-color: rgba(0,255,0,0.3); -fx-padding: 5; -fx-border-radius: 5; -fx-background-radius: 5;");
-        } else {
-            playerBox.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-padding: 5; -fx-border-radius: 5; -fx-background-radius: 5;");
-        }
-    }
-
-    private Image loadCardImage(String cardName) {
-        return new Image(
-                getClass().getResourceAsStream("/cards/" + cardName + ".jpg")
+        // Der grüne ovale Tisch
+        Region ovalTable = new Region();
+        ovalTable.setMaxSize(800, 400);
+        ovalTable.setStyle(
+                "-fx-background-color: #0b6623;" +
+                        "-fx-background-radius: 200;" +
+                        "-fx-border-color: #1a1a1a;" +
+                        "-fx-border-width: 8;" +
+                        "-fx-border-radius: 200;" +
+                        "-fx-effect: dropshadow(gaussian, black, 50, 0.5, 0, 0);"
         );
-    }
 
-    private void setDealer(VBox playerBox) {
-        Circle dealerChip = (Circle) playerBox.getChildren().get(0);
-        dealerChip.setVisible(true);
-    }
-
-    private void clearDealer(VBox playerBox) {
-        Circle dealerChip = (Circle) playerBox.getChildren().get(0);
-        dealerChip.setVisible(false);
-    }
-
-    private void setSmallBlind(VBox player) {
-        Label sb = (Label) player.getChildren().get(1);
-        sb.setVisible(true);
-    }
-
-    private void clearSmallBlind(VBox player) {
-        Label sb = (Label) player.getChildren().get(1);
-        sb.setVisible(false);
-    }
-
-    private void setBigBlind(VBox player) {
-        Label bb = (Label) player.getChildren().get(2);
-        bb.setVisible(true);
-    }
-
-    private void clearBigBlind(VBox player) {
-        Label bb = (Label) player.getChildren().get(2);
-        bb.setVisible(false);
-    }
-
-    private void setAllIn(VBox playerBox, boolean value) {
-        Label allInLabel = (Label) playerBox.getChildren().get(5);
-        allInLabel.setVisible(value);
-    }
-
-    private void setChips(VBox playerBox, int chips) {
-        Label chipLabel = (Label) playerBox.getChildren().get(4);
-        chipLabel.setText("Chips: " + chips);
-    }
-
-    private void highlightPlayer(VBox playerBox, boolean active) {
-        if (active) {
-            playerBox.setStyle(
-                    "-fx-background-color: rgba(0,255,0,0.15);" +
-                            "-fx-border-color: limegreen;" +
-                            "-fx-border-width: 2;" +
-                            "-fx-border-radius: 10;" +
-                            "-fx-background-radius: 10;"
-            );
-        } else {
-            playerBox.setStyle(
-                    "-fx-background-color: rgba(255,255,255,0.1);" +
-                            "-fx-border-color: transparent;" +
-                            "-fx-padding: 5;" +
-                            "-fx-border-radius: 10;" +
-                            "-fx-background-radius: 10;"
-            );
-        }
-    }
-
-    private void dealCardTo(ImageView targetCard, ImageView deckImage, Pane animationLayer) {
-
-        ImageView flyingCard = new ImageView(
-                new Image(getClass().getResourceAsStream("/cards/backside.jpg"))
-        );
-        flyingCard.setFitWidth(80);
-        flyingCard.setFitHeight(120);
-
-        animationLayer.getChildren().add(flyingCard);
-
-        Platform.runLater(() -> {
-            Point2D deckScene = deckImage.localToScene(0, 0);
-            Point2D targetScene = targetCard.localToScene(0, 0);
-
-            Point2D deckLocal = animationLayer.sceneToLocal(deckScene);
-            Point2D targetLocal = animationLayer.sceneToLocal(targetScene);
-
-            flyingCard.setLayoutX(deckLocal.getX());
-            flyingCard.setLayoutY(deckLocal.getY());
-
-            TranslateTransition tt = new TranslateTransition(Duration.millis(500), flyingCard);
-
-            tt.setToX(targetLocal.getX() - deckLocal.getX());
-            tt.setToY(targetLocal.getY() - deckLocal.getY());
-
-            tt.setOnFinished(ev -> {
-                animationLayer.getChildren().remove(flyingCard);
-                targetCard.setVisible(true);
-            });
-
-            tt.play();
-        });
-    }
-
-    public void onHandMessage(String msg) {
-        String[] parts = msg.split(" ");
-
-        Image c1 = loadCardImage(parts[0]);
-        Image c2 = loadCardImage(parts[1]);
-
-        Platform.runLater(() -> {
-            h1.setVisible(true);
-            h2.setVisible(true);
-            flipCard(h1, c1);
-            flipCard(h2, c2);
-        });
-    }
-
-    private void flipCard(ImageView card, Image frontImage) {
-
-        ScaleTransition shrink = new ScaleTransition(Duration.millis(150), card);
-        shrink.setToX(0.0);
-
-        ScaleTransition grow = new ScaleTransition(Duration.millis(150), card);
-        grow.setToX(1.0);
-
-        shrink.setOnFinished(e -> card.setImage(frontImage));
-
-        SequentialTransition flip = new SequentialTransition(shrink, grow);
-        flip.play();
-    }
-
-    private void dealFlop(ImageView deckImage, Pane animationLayer,
-                          ImageView c1, ImageView c2, ImageView c3) {
-
-        Image real1 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-        Image real2 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-        Image real3 = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-
-        SequentialTransition seq = new SequentialTransition();
-
-        for (ImageView target : new ImageView[]{c1, c2, c3}) {
-
-            ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
-            flying.setFitWidth(90);
-            flying.setFitHeight(130);
-
-            animationLayer.getChildren().add(flying);
-
-            Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
-            Bounds targetB = target.localToScene(target.getBoundsInLocal());
-
-            double startX = deck.getCenterX();
-            double startY = deck.getCenterY();
-
-            double endX = targetB.getCenterX();
-            double endY = targetB.getCenterY();
-
-            Point2D start = animationLayer.sceneToLocal(startX, startY);
-            Point2D end = animationLayer.sceneToLocal(endX, endY);
-
-
-            flying.setLayoutX(start.getX());
-            flying.setLayoutY(start.getY());
-
-            TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
-            tt.setToX(end.getX() - start.getX());
-            tt.setToY(end.getY() - start.getY());
-
-            tt.setOnFinished(ev -> {
-                animationLayer.getChildren().remove(flying);
-                target.setVisible(true);
-            });
-
-            seq.getChildren().add(tt);
-        }
-
-        seq.setOnFinished(ev -> {
-            flipCard(c1, real1);
-            flipCard(c2, real2);
-            flipCard(c3, real3);
-        });
-
-        seq.play();
-    }
-
-    private void dealCardTo(ImageView c1, ImageView deckImage, Pane animationLayer, Object o) {
-    }
-
-    private void showAndFlip(ImageView card, Image face) {
-        card.setOpacity(1);
-
-        ScaleTransition shrink = new ScaleTransition(Duration.millis(120), card);
-        shrink.setToX(0);
-
-        ScaleTransition grow = new ScaleTransition(Duration.millis(120), card);
-        grow.setToX(1);
-
-        shrink.setOnFinished(e -> card.setImage(face));
-
-        new SequentialTransition(shrink, grow).play();
-    }
-
-    private void dealTurn(ImageView deckImage, Pane animationLayer, ImageView turnCard) {
-        Image realTurn = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-
-        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
-        flying.setFitWidth(90);
-        flying.setFitHeight(130);
-
-        animationLayer.getChildren().add(flying);
-
-        Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
-        Bounds targetB = turnCard.localToScene(turnCard.getBoundsInLocal());
-
-        double startX = deck.getCenterX();
-        double startY = deck.getCenterY();
-
-        double endX = targetB.getCenterX();
-        double endY = targetB.getCenterY();
-
-        Point2D start = animationLayer.sceneToLocal(startX, startY);
-        Point2D end = animationLayer.sceneToLocal(endX, endY);
-
-        flying.setLayoutX(start.getX());
-        flying.setLayoutY(start.getY());
-
-        TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
-        tt.setToX(end.getX() - start.getX());
-        tt.setToY(end.getY() - start.getY());
-
-        tt.setOnFinished(ev -> {
-            animationLayer.getChildren().remove(flying);
-
-            turnCard.setVisible(true);
-            turnCard.setOpacity(1);
-
-            flipCard(turnCard, realTurn);
-        });
-
-        tt.play();
-    }
-
-    private void dealRiver(ImageView deckImage, Pane animationLayer, ImageView riverCard) {
-        Image realRiver = new Image(getClass().getResourceAsStream("/cards/" + deck.draw()));
-
-        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
-        flying.setFitWidth(90);
-        flying.setFitHeight(130);
-
-        animationLayer.getChildren().add(flying);
-
-        Bounds deck = deckImage.localToScene(deckImage.getBoundsInLocal());
-        Bounds targetB = riverCard.localToScene(riverCard.getBoundsInLocal());
-
-        double startX = deck.getCenterX();
-        double startY = deck.getCenterY();
-
-        double endX = targetB.getCenterX();
-        double endY = targetB.getCenterY();
-
-        Point2D start = animationLayer.sceneToLocal(startX, startY);
-        Point2D end = animationLayer.sceneToLocal(endX, endY);
-
-        flying.setLayoutX(start.getX());
-        flying.setLayoutY(start.getY());
-
-        TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
-        tt.setToX(end.getX() - start.getX());
-        tt.setToY(end.getY() - start.getY());
-
-        tt.setOnFinished(ev -> {
-            animationLayer.getChildren().remove(flying);
-
-            riverCard.setVisible(true);
-            riverCard.setOpacity(1);
-
-            flipCard(riverCard, realRiver);
-        });
-
-        tt.play();
-    }
-
-    private void startNewRound(
-            java.util.List<VBox> players,
-            ImageView com1, ImageView com2, ImageView com3, ImageView com4, ImageView com5
-    ) {
-
-        deck = new Deck();
-
-        resetCards(com1, com2, com3, com4, com5, h1, h2);
-
-        for (ImageView c : new ImageView[]{com1, com2, com3, com4, com5}) {
-            c.setVisible(false);
-        }
-
-        h1.setVisible(false);
-        h2.setVisible(false);
-
-        for (VBox p : players) {
-            HBox cards = (HBox) p.getChildren().get(6);
-            ImageView c1 = (ImageView) cards.getChildren().get(0);
-            ImageView c2 = (ImageView) cards.getChildren().get(1);
-
-            resetCards(c1, c2);
-        }
-
-        rotateDealer(players);
-
-        assignBlinds(players);
-
-        dealNewHandForAllPlayers(deckImage, players);
-
-        System.out.println("Next round has started");
-
-    }
-    private int dealerIndex = 0;
-
-    private void rotateDealer(java.util.List<VBox> players) {
-
-        clearDealer(players.get(dealerIndex));
-
-        dealerIndex = (dealerIndex + 1) % players.size();
-
-        setDealer(players.get(dealerIndex));
-    }
-
-    private void assignBlinds(java.util.List<VBox> players) {
-
-        for (VBox p : players) {
-            clearSmallBlind(p);
-            clearBigBlind(p);
-        }
-
-        int sbIndex = (dealerIndex + 1) % players.size();
-        int bbIndex = (dealerIndex + 2) % players.size();
-
-        setSmallBlind(players.get(sbIndex));
-        setBigBlind(players.get(bbIndex));
-    }
-
-    private void resetCards(ImageView... cards) {
+        // Community Cards Container
+        HBox boardRow = new HBox(15);
+        boardRow.setAlignment(Pos.CENTER);
 
         Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
 
-        for (ImageView c : cards) {
-            c.setImage(back);
-            c.setVisible(false);
-            c.setOpacity(1.0);
-        }
+        com1 = createCardView(back);
+        com2 = createCardView(back);
+        com3 = createCardView(back);
+        com4 = createCardView(back);
+        com5 = createCardView(back);
+
+        // Deck Grafik (für Animationen)
+        deckImage = new ImageView(back);
+        deckImage.setFitWidth(80);
+        deckImage.setFitHeight(120);
+
+        boardRow.getChildren().addAll(com1, com2, com3, com4, com5, new Region(), deckImage);
+        ((Region) boardRow.getChildren().get(5)).setPrefWidth(50); // Spacer vor Deck
+
+        // Pot Label
+        potLabel = new Label("Pot: 0");
+        potLabel.setStyle("-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: white; -fx-effect: dropshadow(gaussian, black, 2, 1, 0, 0);");
+
+        VBox tableContent = new VBox(20);
+        tableContent.setAlignment(Pos.CENTER);
+        tableContent.getChildren().addAll(boardRow, potLabel);
+
+        tableArea.getChildren().addAll(ovalTable, tableContent);
+        return tableArea;
     }
 
-    private void dealNewHandForAllPlayers(ImageView deckImage, List<VBox> players) {
-        Timeline timeline = new Timeline();
-        int delay = 0;
+    private Node createControls() {
+        HBox controlBox = new HBox(15);
+        controlBox.setAlignment(Pos.CENTER);
+        controlBox.setPadding(new Insets(10));
+        controlBox.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-background-radius: 15;");
+        controlBox.setMaxWidth(800);
 
-        ImageView[][] playerCards = new ImageView[players.size()][2];
+        foldBtn = new Button("FOLD");
+        checkBtn = new Button("CHECK / CALL");
+        raiseBtn = new Button("RAISE");
+        allInBtn = new Button("ALL-IN");
 
-        for (int i = 0; i < players.size(); i++) {
-            HBox cards = (HBox) players.get(i).getChildren().get(6);
-            playerCards[i][0] = (ImageView) cards.getChildren().get(0);
-            playerCards[i][1] = (ImageView) cards.getChildren().get(1);
+        // Styling
+        String btnStyle = "-fx-font-size: 14px; -fx-font-weight: bold; -fx-base: #444; -fx-text-fill: white;";
+        for(Button b : new Button[]{foldBtn, checkBtn, raiseBtn, allInBtn}) {
+            b.setStyle(btnStyle);
+            b.setMinWidth(100);
+            b.setPrefHeight(40);
         }
 
-        for (int i = 0; i < players.size(); i++) {
-            ImageView target = playerCards[i][0];
-            timeline.getKeyFrames().add(
-                    new KeyFrame(Duration.millis(delay += 300),
-                            e -> dealCardTo(target, deckImage, animationLayer))
-            );
-        }
+        // Fold Aktion
+        foldBtn.setOnAction(e -> client.sendMessage("FOLD"));
 
-        timeline.getKeyFrames().add(
-                new KeyFrame(Duration.millis(delay += 300),
-                        e -> dealCardTo(h1, deckImage, animationLayer))
-        );
+        // Check/Call Aktion
+        checkBtn.setOnAction(e -> client.sendMessage("CHECK"));
+        // Anmerkung: Server sollte unterscheiden, ob es Check oder Call ist basierend auf GameState,
+        // oder man sendet "CALL", wenn es eine Bet gibt. Hier vereinfacht.
 
-        for (int i = 0; i < players.size(); i++) {
-            ImageView target = playerCards[i][1];
-            timeline.getKeyFrames().add(
-                    new KeyFrame(Duration.millis(delay += 300),
-                            e -> dealCardTo(target, deckImage, animationLayer))
-            );
-        }
+        // All-In
+        allInBtn.setOnAction(e -> client.sendMessage("ALLIN"));
 
-        timeline.getKeyFrames().add(
-                new KeyFrame(Duration.millis(delay += 300),
-                        e -> dealCardTo(h2, deckImage, animationLayer))
-        );
+        // Raise Slider
+        raiseSlider = new Slider(0, 1000, 0);
+        Label betValLabel = new Label("0");
+        betValLabel.setTextFill(Color.WHITE);
 
-        timeline.setOnFinished(ev -> {
-            String a = deck.draw();
-            String b = deck.draw();
-
-            Image heroA = new Image(getClass().getResourceAsStream("/cards/" + a));
-            Image heroB = new Image(getClass().getResourceAsStream("/cards/" + b));
-
-            h1.setVisible(true);
-            h2.setVisible(true);
-
-            flipCard(h1, heroA);
-            flipCard(h2, heroB);
+        raiseSlider.valueProperty().addListener((obs, o, n) -> {
+            betValLabel.setText(String.valueOf(n.intValue()));
         });
 
-        timeline.play();
-    }
-
-    private void collectAllCardsToDeck(
-            Pane animationLayer,
-            ImageView deckImage,
-            ImageView[] boardCards,
-            java.util.List<VBox> players,
-            ImageView h1,
-            ImageView h2
-    ) {
-        SequentialTransition seq = new SequentialTransition();
-
-        Platform.runLater(() -> {
-            for (ImageView card : boardCards) {
-                if (!card.isVisible()) continue;
-
-                ImageView flying = new ImageView(card.getImage());
-                flying.setFitWidth(card.getFitWidth());
-                flying.setFitHeight(card.getFitHeight());
-
-                animationLayer.getChildren().add(flying);
-
-                Bounds fromB = card.localToScene(card.getBoundsInLocal());
-                Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
-
-                Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
-                Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
-
-                flying.setLayoutX(start.getX());
-                flying.setLayoutY(start.getY());
-
-                TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
-                tt.setToX(end.getX() - start.getX());
-                tt.setToY(end.getY() - start.getY());
-
-                tt.setOnFinished(ev -> {
-                    animationLayer.getChildren().remove(flying);
-                    card.setVisible(false);
-                });
-
-                seq.getChildren().add(tt);
-            }
-
-            for (VBox p : players) {
-                HBox cards = (HBox) p.getChildren().get(6);
-                ImageView c1 = (ImageView) cards.getChildren().get(0);
-                ImageView c2 = (ImageView) cards.getChildren().get(1);
-
-                for (ImageView card : new ImageView[] {c1, c2}) {
-                    if (!card.isVisible()) continue;
-
-                    ImageView flying = new ImageView(card.getImage());
-                    flying.setFitWidth(card.getFitWidth());
-                    flying.setFitHeight(card.getFitHeight());
-
-                    animationLayer.getChildren().add(flying);
-
-                    Bounds fromB = card.localToScene(card.getBoundsInLocal());
-                    Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
-
-                    Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
-                    Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
-
-                    flying.setLayoutX(start.getX());
-                    flying.setLayoutY(start.getY());
-
-                    TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
-                    tt.setToX(end.getX() - start.getX());
-                    tt.setToY(end.getY() - start.getY());
-
-                    tt.setOnFinished(ev -> {
-                        animationLayer.getChildren().remove(flying);
-                        card.setVisible(false);
-                    });
-
-                    seq.getChildren().add(tt);
-                }
-            }
-
-            for (ImageView hero : new ImageView[]{h1, h2}) {
-                if (!hero.isVisible()) continue;
-
-                ImageView flying = new ImageView(hero.getImage());
-                flying.setFitWidth(hero.getFitWidth());
-                flying.setFitHeight(hero.getFitHeight());
-
-                animationLayer.getChildren().add(flying);
-
-                Bounds fromB = hero.localToScene(hero.getBoundsInLocal());
-                Bounds toB = deckImage.localToScene(deckImage.getBoundsInLocal());
-
-                Point2D start = animationLayer.sceneToLocal(fromB.getCenterX(), fromB.getCenterY());
-                Point2D end = animationLayer.sceneToLocal(toB.getCenterX(), toB.getCenterY());
-
-                flying.setLayoutX(start.getX());
-                flying.setLayoutY(start.getY());
-
-                TranslateTransition tt = new TranslateTransition(Duration.millis(700), flying);
-                tt.setToX(end.getX() - start.getX());
-                tt.setToY(end.getY() - start.getY());
-
-                tt.setOnFinished(ev -> {
-                    animationLayer.getChildren().remove(flying);
-                    hero.setVisible(false);
-                });
-
-                seq.getChildren().add(tt);
-            }
-
-            seq.setOnFinished(ev -> {
-                deck = new Deck();
-
-                rotateDealer(players);
-
-                assignBlinds(players);
-
-                dealNewHandForAllPlayers(deckImage, players);
-
-                autoDealBoard(deckImage,
-                        boardCards[0], boardCards[1], boardCards[2], boardCards[3],
-                        boardCards[4]
-                );
-
-                System.out.println("Deck has been shuffled");
-            });
-
-            seq.play();
+        raiseBtn.setOnAction(e -> {
+            int amount = (int) raiseSlider.getValue();
+            client.sendMessage("RAISE " + amount);
         });
+
+        VBox raiseBox = new VBox(5, new Label("Raise Amount"), raiseSlider, betValLabel);
+        raiseBox.setAlignment(Pos.CENTER);
+        ((Label)raiseBox.getChildren().get(0)).setTextFill(Color.LIGHTGRAY);
+
+        controlBox.getChildren().addAll(foldBtn, checkBtn, raiseBox, raiseBtn, allInBtn);
+
+        return controlBox;
     }
 
-    private void autoDealBoard(ImageView deckImage,
-                               ImageView com1, ImageView com2, ImageView com3,
-                               ImageView com4, ImageView com5) {
+    private VBox createPlayerBox(String name, int chips, boolean isHero) {
+        VBox box = new VBox(5);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(10));
 
-        Timeline t = new Timeline();
-        int d = 0;
+        // Hintergrund für aktiven Spieler
+        box.setStyle("-fx-background-color: rgba(0,0,0,0.3); -fx-background-radius: 10;");
 
-        t.getKeyFrames().add(new KeyFrame(Duration.millis(d+= 1200),
-                e -> dealFlop(deckImage, animationLayer, com1, com2, com3)));
+        Label nameLbl = new Label(name);
+        nameLbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16;");
 
-        t.getKeyFrames().add(new KeyFrame(Duration.millis(d += 1600),
-                e -> dealTurn(deckImage, animationLayer, com4)));
+        Label chipLbl = new Label("Chips: " + chips);
+        chipLbl.setStyle("-fx-text-fill: gold; -fx-font-size: 14;");
 
-        t.getKeyFrames().add(new KeyFrame(Duration.millis(d += 1600),
-                e -> dealRiver(deckImage, animationLayer, com5)));
+        // Karten Container
+        HBox cards = new HBox(5);
+        cards.setAlignment(Pos.CENTER);
 
-        t.play();
-    }
+        Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
 
-    private void playFullHand(ImageView deckImage, List<VBox> players,
-                              ImageView com1, ImageView com2, ImageView com3, ImageView com4,
-                              ImageView com5) {
-        dealNewHandForAllPlayers(deckImage, players);
+        ImageView c1 = createCardView(back);
+        ImageView c2 = createCardView(back);
 
-        Timeline t = new Timeline();
-        int d = 0;
-        d += 3500;
+        // Für Gegner Karten initial sichtbar (Rückseite), für Hero unsichtbar bis Deal
+        if (!isHero) {
+            c1.setVisible(true);
+            c2.setVisible(true);
+        } else {
+            c1.setVisible(false);
+            c2.setVisible(false);
+        }
 
-        t.getKeyFrames().add(
-                new KeyFrame(Duration.millis(d),
-                        e -> dealFlop(deckImage, animationLayer, com1, com2, com3))
-        );
+        cards.getChildren().addAll(c1, c2);
 
-        d += 1800;
+        // Dealer Button (Initial unsichtbar)
+        Circle dealerBtn = new Circle(8, Color.RED);
+        dealerBtn.setStroke(Color.BLACK);
+        dealerBtn.setVisible(false);
 
-        t.getKeyFrames().add(
-                new KeyFrame(Duration.millis(d),
-                        e -> dealTurn(deckImage, animationLayer, com4))
-        );
+        HBox topInfo = new HBox(10, dealerBtn, nameLbl);
+        topInfo.setAlignment(Pos.CENTER);
 
-        d += 1800;
-
-        t.getKeyFrames().add(
-                new KeyFrame(Duration.millis(d),
-                        e -> dealRiver(deckImage, animationLayer, com5))
-        );
-
-        t.play();
-    }
-
-    private void showHelp() {
-        overlay.setVisible(true);
-        helpWindow.setScaleX(0.6);
-        helpWindow.setScaleY(0.6);
-        helpWindow.setOpacity(0);
-
-        FadeTransition fade = new FadeTransition(Duration.millis(250), helpWindow);
-        fade.setToValue(1);
-
-        ScaleTransition scale = new ScaleTransition(Duration.millis(250), helpWindow);
-        scale.setToX(1);
-        scale.setToY(1);
-
-        new ParallelTransition(fade, scale).play();
-    }
-
-    private void hideHelp() {
-        FadeTransition fade = new FadeTransition(Duration.millis(200), helpWindow);
-        fade.setToValue(0);
-
-        ScaleTransition scale = new ScaleTransition(Duration.millis(200), helpWindow);
-        scale.setToX(0.7);
-        scale.setToY(0.7);
-
-        ParallelTransition pt = new ParallelTransition(fade, scale);
-
-        pt.setOnFinished(e -> overlay.setVisible(false));
-        pt.play();
-    }
-
-    private HBox createHandExample(String title, String imagePatch) {
-        ImageView img = new ImageView(new Image(getClass().getResourceAsStream(imagePatch)));
-        img.setFitHeight(70);
-        img.setPreserveRatio(true);
-
-        Label lbl = new Label(title);
-        lbl.setStyle("-fx-text-fill: white; -fx-font-size: 14;");
-
-        HBox box = new HBox(12, img, lbl);
-        box.setAlignment(Pos.CENTER_LEFT);
+        box.getChildren().addAll(topInfo, chipLbl, cards);
 
         return box;
     }
-    private void onExitGameClicked() throws IOException {
-        App.getSceneController().switchToMainMenu();
+
+    private ImageView createCardView(Image img) {
+        ImageView iv = new ImageView(img);
+        iv.setFitWidth(80);
+        iv.setFitHeight(120);
+        iv.setPreserveRatio(true);
+        return iv;
+    }
+
+    /**
+     * Extrahiert die Referenzen aus den dynamisch erzeugten VBoxen,
+     * damit wir sie in onServerMessage ansprechen können.
+     */
+    private void extractCardReferences() {
+        HBox heroCardsBox = (HBox) heroBox.getChildren().get(2);
+        h1 = (ImageView) heroCardsBox.getChildren().get(0);
+        h2 = (ImageView) heroCardsBox.getChildren().get(1);
+        heroChipLabel = (Label) heroBox.getChildren().get(1);
+
+        HBox oppCardsBox = (HBox) opponentBox.getChildren().get(2);
+        o1 = (ImageView) oppCardsBox.getChildren().get(0);
+        o2 = (ImageView) oppCardsBox.getChildren().get(1);
+        opponentChipLabel = (Label) opponentBox.getChildren().get(1);
+    }
+
+    // --- SERVER MESSAGE HANDLING ---
+
+    /**
+     * Zentraler Einstiegspunkt für alle Server-Events.
+     * Erwartetes Protokoll (Beispiele):
+     * - HAND 5_of_clubs 6_of_hearts
+     * - FLOP A_of_spades 10_of_diamonds 2_of_hearts
+     * - TURN K_of_clubs
+     * - RIVER Q_of_hearts
+     * - POT 500
+     * - CHIPS HERO 1500
+     * - CHIPS OPPONENT 2000
+     * - TURN_ACTIVE HERO
+     * - TURN_ACTIVE OPPONENT
+     * - OPPONENT_FOLD
+     * - NEW_ROUND
+     */
+    @Override
+    public void onServerMessage(String message) {
+        if (message == null || message.trim().isEmpty()) return;
+
+        Platform.runLater(() -> {
+            String[] parts = message.split(" ");
+            String cmd = parts[0];
+
+            switch (cmd) {
+                case "HAND":
+                    // Format: HAND card1 card2
+                    if (parts.length >= 3) {
+                        dealPlayerHand(parts[1], parts[2]);
+                    }
+                    break;
+
+                case "OPPONENT_HAND":
+                    // Gegner bekommt Karten (Animation Rückseite)
+                    dealOpponentHand();
+                    break;
+
+                case "FLOP":
+                    // Format: FLOP c1 c2 c3
+                    if (parts.length >= 4) {
+                        dealCommunityCards(new String[]{parts[1], parts[2], parts[3]}, com1, com2, com3);
+                    }
+                    break;
+
+                case "TURN":
+                    // Format: TURN c1
+                    if (parts.length >= 2) {
+                        dealCommunityCards(new String[]{parts[1]}, com4);
+                    }
+                    break;
+
+                case "RIVER":
+                    // Format: RIVER c1
+                    if (parts.length >= 2) {
+                        dealCommunityCards(new String[]{parts[1]}, com5);
+                    }
+                    break;
+
+                case "POT":
+                    if (parts.length >= 2) potLabel.setText("Pot: " + parts[1]);
+                    break;
+
+                case "CHIPS":
+                    // Format: CHIPS <WHO> <AMOUNT>
+                    if (parts.length >= 3) {
+                        updateChips(parts[1], parts[2]);
+                    }
+                    break;
+
+                case "TURN_ACTIVE":
+                    // Format: TURN_ACTIVE <WHO> (HERO oder OPPONENT)
+                    boolean isMyTurn = parts.length >= 2 && parts[1].equals("HERO");
+                    updateActivePlayer(isMyTurn);
+                    break;
+
+                case "SHOWDOWN":
+                    // Gegner Karten aufdecken: SHOWDOWN c1 c2
+                    if (parts.length >= 3) {
+                        revealOpponent(parts[1], parts[2]);
+                    }
+                    break;
+
+                case "NEW_ROUND":
+                    resetTable();
+                    break;
+
+                case "WINNER":
+                    // Format: WINNER HERO 500
+                    showWinnerAnimation(parts.length >= 2 ? parts[1] : "Unbekannt");
+                    break;
+            }
+        });
+    }
+
+    // --- Animation & Logic Methods ---
+
+    private void dealPlayerHand(String card1Name, String card2Name) {
+        h1.setVisible(true);
+        h2.setVisible(true);
+
+        // Animation von Deck zu Hand
+        animateCardDeal(deckImage, h1, loadCardImage(card1Name), 0);
+        animateCardDeal(deckImage, h2, loadCardImage(card2Name), 200);
+    }
+
+    private void dealOpponentHand() {
+        // Animation von Deck zu Gegner (Rückseite)
+        o1.setVisible(true);
+        o2.setVisible(true);
+        Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
+
+        animateCardDeal(deckImage, o1, back, 0);
+        animateCardDeal(deckImage, o2, back, 200);
+    }
+
+    private void dealCommunityCards(String[] cardNames, ImageView... targets) {
+        int delay = 0;
+        for (int i = 0; i < targets.length; i++) {
+            targets[i].setVisible(true);
+            Image front = loadCardImage(cardNames[i]);
+            animateCardDeal(deckImage, targets[i], front, delay);
+            delay += 300;
+        }
+    }
+
+    private void revealOpponent(String c1, String c2) {
+        flipCard(o1, loadCardImage(c1));
+        flipCard(o2, loadCardImage(c2));
+    }
+
+    private void updateChips(String who, String amount) {
+        if ("HERO".equals(who)) {
+            heroChipLabel.setText("Chips: " + amount);
+        } else {
+            opponentChipLabel.setText("Chips: " + amount);
+        }
+    }
+
+    private void updateActivePlayer(boolean isMyTurn) {
+        setControlsEnabled(isMyTurn);
+
+        // Visuelles Feedback wer dran ist
+        if (isMyTurn) {
+            heroBox.setStyle("-fx-background-color: rgba(0,255,0,0.2); -fx-background-radius: 10; -fx-border-color: green; -fx-border-radius: 10;");
+            opponentBox.setStyle("-fx-background-color: rgba(0,0,0,0.3); -fx-background-radius: 10;");
+        } else {
+            heroBox.setStyle("-fx-background-color: rgba(0,0,0,0.3); -fx-background-radius: 10;");
+            opponentBox.setStyle("-fx-background-color: rgba(255,0,0,0.2); -fx-background-radius: 10; -fx-border-color: red; -fx-border-radius: 10;");
+        }
+    }
+
+    private void resetTable() {
+        // Karten resetten
+        Image back = new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
+        for (ImageView iv : new ImageView[]{h1, h2, o1, o2, com1, com2, com3, com4, com5}) {
+            iv.setVisible(false);
+            iv.setImage(back);
+        }
+        potLabel.setText("Pot: 0");
+    }
+
+    private void showWinnerAnimation(String winnerName) {
+        Label winLabel = new Label(winnerName + " WINS!");
+        winLabel.setStyle("-fx-font-size: 40; -fx-font-weight: bold; -fx-text-fill: gold; -fx-effect: dropshadow(gaussian, black, 10, 0.8, 0, 0);");
+
+        StackPane root = (StackPane) animationLayer.getParent();
+        root.getChildren().add(winLabel);
+
+        FadeTransition ft = new FadeTransition(Duration.seconds(3), winLabel);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> root.getChildren().remove(winLabel));
+        ft.play();
+    }
+
+    private void animateCardDeal(ImageView source, ImageView target, Image finalImage, int delayMillis) {
+        // Hilfs-ImageView für den Flug
+        ImageView flying = new ImageView(new Image(getClass().getResourceAsStream("/cards/backside.jpg")));
+        flying.setFitWidth(target.getFitWidth());
+        flying.setFitHeight(target.getFitHeight());
+
+        // Positionierung
+        Bounds sourceBounds = source.localToScene(source.getBoundsInLocal());
+        Bounds targetBounds = target.localToScene(target.getBoundsInLocal());
+
+        // Umrechnung auf AnimationLayer Koordinaten
+        Point2D startP = animationLayer.sceneToLocal(sourceBounds.getCenterX(), sourceBounds.getCenterY());
+        Point2D endP = animationLayer.sceneToLocal(targetBounds.getCenterX(), targetBounds.getCenterY());
+
+        flying.setLayoutX(startP.getX() - flying.getFitWidth()/2);
+        flying.setLayoutY(startP.getY() - flying.getFitHeight()/2);
+        flying.setVisible(false);
+
+        animationLayer.getChildren().add(flying);
+
+        Timeline t = new Timeline(new KeyFrame(Duration.millis(delayMillis), e -> {
+            flying.setVisible(true);
+
+            TranslateTransition tt = new TranslateTransition(Duration.millis(400), flying);
+            tt.setToX(endP.getX() - startP.getX());
+            tt.setToY(endP.getY() - startP.getY());
+
+            tt.setOnFinished(ev -> {
+                animationLayer.getChildren().remove(flying);
+                target.setImage(finalImage); // Setze das finale Bild
+                // Kleiner Flip-Effekt wenn es eine offene Karte ist
+                if (!finalImage.getUrl().contains("backside")) {
+                    flipCard(target, finalImage);
+                }
+            });
+            tt.play();
+        }));
+        t.play();
+    }
+
+    private void flipCard(ImageView card, Image frontImage) {
+        ScaleTransition shrink = new ScaleTransition(Duration.millis(150), card);
+        shrink.setToX(0.0);
+
+        shrink.setOnFinished(e -> {
+            card.setImage(frontImage);
+            ScaleTransition grow = new ScaleTransition(Duration.millis(150), card);
+            grow.setToX(1.0);
+            grow.play();
+        });
+        shrink.play();
     }
 
     private void setControlsEnabled(boolean enabled) {
@@ -1584,27 +506,48 @@ public class PokerTableView implements ServerMessageListener{
         checkBtn.setDisable(!enabled);
         raiseBtn.setDisable(!enabled);
         allInBtn.setDisable(!enabled);
+        raiseSlider.setDisable(!enabled);
     }
 
-    public void onServerMessage(String message) {
-
-        if (message.startsWith("GAME_STATE")) {
-
-            String[] parts = message.split(" ");
-            String currentPlayer = null;
-
-            for (String p : parts) {
-                if (p.startsWith("currentPlayer=")) {
-                    currentPlayer = p.split("=")[1];
-                }
-            }
-
-            String myName = App.getSceneController().getClient().getPlayerName();
-
-            boolean myTurn = myName.equals(currentPlayer);
-
-            Platform.runLater(() -> setControlsEnabled(myTurn));
+    private Image loadCardImage(String name) {
+        // Versucht Bild zu laden, Fallback auf Rückseite bei Fehler
+        try {
+            return new Image(getClass().getResourceAsStream("/cards/" + name + ".jpg"));
+        } catch (Exception e) {
+            System.err.println("Card image not found: " + name);
+            return new Image(getClass().getResourceAsStream("/cards/backside.jpg"));
         }
     }
-}
 
+    private void createOverlayMenu(BorderPane root) {
+        overlay = new StackPane();
+        overlay.setVisible(false);
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.8);");
+
+        VBox menuBox = new VBox(20);
+        menuBox.setAlignment(Pos.CENTER);
+        menuBox.setStyle("-fx-background-color: #333; -fx-padding: 30; -fx-background-radius: 10; -fx-border-color: white;");
+        menuBox.setMaxSize(300, 200);
+
+        Button helpBtn = new Button("Hilfe");
+        Button exitBtn = new Button("Spiel Beenden");
+        Button resumeBtn = new Button("Zurück");
+
+        String style = "-fx-font-size: 16; -fx-min-width: 150;";
+        helpBtn.setStyle(style);
+        exitBtn.setStyle(style);
+        resumeBtn.setStyle(style);
+
+        resumeBtn.setOnAction(e -> overlay.setVisible(false));
+        exitBtn.setOnAction(e -> {
+            try {
+                App.getSceneController().switchToMainMenu();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        menuBox.getChildren().addAll(new Label("Menü"){{setStyle("-fx-text-fill:white; -fx-font-size:20;");}}, resumeBtn, helpBtn, exitBtn);
+        overlay.getChildren().add(menuBox);
+    }
+}
