@@ -266,11 +266,12 @@ public class Game {
             // Sende dem Spieler die Karten des Gegners
             ch.sendMessage("SHOWDOWN " + opp.getHand()[0] + " " + opp.getHand()[1]);
         }
-
-        // Gewinner ermitteln (Vereinfacht: High Card Logic Placeholder)
-        // Hier müsstest du deine komplexe "getWinners" Logik einbinden
-        // Fürs Beispiel gewinnt Player 1 immer:
-        Player winner = players[0]; // TODO: Echte Logik nutzen
+        Player winner;
+        if (players[0].getPoints() >= players[1].getPoints()) {
+            winner = players[0];
+        } else {
+            winner = players[1];
+        }
 
         broadcastToAll("WINNER " + winner.getName());
 
@@ -283,7 +284,7 @@ public class Game {
 
         // Neue Runde verzögert starten (Thread sleep bad in production, but ok here)
         new Thread(() -> {
-            try { Thread.sleep(4000); } catch (Exception e){}
+            try { Thread.sleep(9000); } catch (Exception e){}
             startNewRound();
         }).start();
     }
