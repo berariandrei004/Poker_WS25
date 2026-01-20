@@ -141,9 +141,10 @@ public class PokerTableView implements ServerMessageListener {
         potLabel.setStyle("-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: white; -fx-effect: dropshadow(gaussian, black, 2, 1, 0, 0);");
         currentBetLabel = new Label("Aktueller Einsatz: 0");
         currentBetLabel.setStyle("-fx-font-size: 16; -fx-text-fill: lightgreen; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 1, 1, 0, 0);");
-        VBox tableContent = new VBox(20);
+        VBox tableContent = new VBox(10); // Abstand etwas verringert
         tableContent.setAlignment(Pos.CENTER);
-        tableContent.getChildren().addAll(boardRow, potLabel);
+        // Label zur Box hinzufügen
+        tableContent.getChildren().addAll(boardRow, potLabel, currentBetLabel);
 
         tableArea.getChildren().addAll(ovalTable, tableContent);
         return tableArea;
