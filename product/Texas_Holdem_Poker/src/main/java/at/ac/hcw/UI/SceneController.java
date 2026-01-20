@@ -104,12 +104,12 @@ public class SceneController {
     }
 
     private void handleServerMessage(String message) {
-        if (message.startsWith("HAND:")) {
-            if (tableView != null) {
-                tableView.onHandMessage(message.replace("HAND:", ""));
-            }
-            return;
-        }
+//        if (message.startsWith("HAND:")) {
+//            if (tableView != null) {
+//                tableView.onHandMessage(message.replace("HAND:", ""));
+//            }
+//            return;
+//        }
 
         if (messageListener != null) {
             messageListener.onServerMessage(message);
