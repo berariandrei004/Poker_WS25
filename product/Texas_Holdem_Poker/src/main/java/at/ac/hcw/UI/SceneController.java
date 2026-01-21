@@ -92,7 +92,7 @@ public class SceneController {
         // Controller als Listener setzen, der an die View delegiert
         this.messageListener = currentTableView;
 
-        Scene scene = new Scene(root, 900, 600);
+        Scene scene = new Scene(root, 1200, 800);
         stage.setScene(scene);
         stage.show();
     }

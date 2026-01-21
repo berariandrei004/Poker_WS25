@@ -1,6 +1,9 @@
 package at.ac.hcw.Server;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class Player {
     private String name;
@@ -165,6 +168,21 @@ public class Player {
     // --- DEINE ORIGINALE GEWINN-LOGIK ---
 
     public int getPoints() {
+        ArrayList<Card> tempCards = new ArrayList<>();
+        for (Card c : hand) {
+            if (c != null) tempCards.add(c);
+        }
+        Collections.sort(tempCards, new Comparator<Card>() {
+            @Override
+            public int compare(Card o1, Card o2) {
+                return Integer.compare(o2.getNum(), o1.getNum()); // o2 - o1 für descending
+            }
+        });
+        Card[] sortedHand = new Card[7];
+        for(int i=0; i<tempCards.size(); i++) {
+            sortedHand[i] = tempCards.get(i);
+        }
+        this.hand = sortedHand;
         // Sicherheitscheck: Wenn Hand noch leer ist (z.B. Spielabbruch), 0 zurückgeben
         if (hand[0] == null) return 0;
 
@@ -264,30 +282,23 @@ public class Player {
         }
 
         //Full House
-        for (int i = 0; i < 3; i++) {
-            for (int j = i+1; j < hand.length; j++) {
-                if (hand[i] != null && hand[j] != null && hand[i].getNum() == hand[j].getNum()) {
-                    for (int k = 0; k < 5; k++) {
-                        if (hand[k] != null && hand[i].getNum() != hand[k].getNum()) {
-                            int count = 1;
-                            for (int l = k+1; l < hand.length; l++) {
-                                if (hand[l] != null && hand[k].getNum() == hand[l].getNum()) {
-                                    count += 1;
-                                }
-                                if (count == 3) {
-                                    for (int m = 0; m < 3; m++) {
-                                        for (int n = 0; n < 7; n++) {
-                                            if (hand[n] != null && hand[n].getNum() == hand[i].getNum()) { // Achtung: Hier war im Original hand[i] referenziert
-                                                endHand[m] = hand[n]; // Hier könnte Logikfehler im Original sein, aber ich lasse es so
-                                            }
-                                        }
-                                    }
-                                    // Ich habe hier leicht angepasst, um NullPointer zu vermeiden, aber Logik behalten:
-                                    // Original Logik scheint hier etwas tricky zu sein, ich übernehme es so gut es geht.
-                                    // (Der Originalcode hatte hier potenziell Bugs bei der Zuweisung, aber das ist 1:1 Kopie)
-                                    return 6;
-                                }
-                            }
+        for (int i = 0; i < hand.length - 2; i++) {
+            if (hand[i] != null && hand[i+1] != null && hand[i+2] != null) {
+                if (hand[i].getNum() == hand[i+1].getNum() && hand[i].getNum() == hand[i+2].getNum()) {
+                    // Drilling gefunden bei i. Suche jetzt Paar.
+                    for (int j = 0; j < hand.length - 1; j++) {
+                        // Paar darf nicht Teil des Drillings sein
+                        if (j == i || j == i+1 || j == i+2) continue;
+                        if (j+1 == i || j+1 == i+1 || j+1 == i+2) continue;
+
+                        if (hand[j] != null && hand[j+1] != null && hand[j].getNum() == hand[j+1].getNum()) {
+                            // Full House gefunden!
+                            endHand[0] = hand[i];
+                            endHand[1] = hand[i+1];
+                            endHand[2] = hand[i+2];
+                            endHand[3] = hand[j];
+                            endHand[4] = hand[j+1];
+                            return 6;
                         }
                     }
                 }
