@@ -16,7 +16,7 @@
             <Font size="35.0" />
          </font>
       </Button>
-      <Button mnemonicParsing="false" prefHeight="80.0" prefWidth="350.0" text="Anleitung">
+      <Button mnemonicParsing="false" prefHeight="80.0" prefWidth="350.0" text="Anleitung" visible="false">
          <font>
             <Font size="35.0" />
          </font>
