@@ -307,7 +307,7 @@ public class Game {
 
         // Neue Runde verzögert starten (Thread sleep bad in production, but ok here)
         new Thread(() -> {
-            try { Thread.sleep(9000); } catch (Exception e){}
+            try { Thread.sleep(4000); } catch (Exception e){}
             startNewRound();
         }).start();
     }

@@ -496,6 +496,32 @@ public class Player {
                 }
             }
         }
+        // 1. Alle verfügbaren Karten in ein temporäres Array kopieren
+        Card[] allCards = new Card[7];
+        int cardCount = 0;
+        for(Card c : hand) {
+            if(c != null) {
+                allCards[cardCount++] = c;
+            }
+        }
+
+        // 2. Sortieren (Bubble Sort, absteigend nach num)
+        for(int i = 0; i < cardCount; i++) {
+            for(int j = i + 1; j < cardCount; j++) {
+                if(allCards[j].getNum() > allCards[i].getNum()) {
+                    Card temp = allCards[i];
+                    allCards[i] = allCards[j];
+                    allCards[j] = temp;
+                }
+            }
+        }
+
+        // 3. Die Top 5 in endHand speichern
+        for(int k = 0; k < 5; k++) {
+            if (k < cardCount) {
+                endHand[k] = allCards[k];
+            }
+        }
 
         return 0;
     }
