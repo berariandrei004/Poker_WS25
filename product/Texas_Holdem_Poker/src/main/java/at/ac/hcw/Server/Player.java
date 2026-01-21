@@ -197,6 +197,11 @@ public class Player {
                                     if (hand[l] != null && hand[l].getNum() == 9 && hand[l].getSuit() == hand[i].getSuit()) {
                                         for (int m = 0; m < hand.length; m++) {
                                             if (hand[m] != null && hand[m].getNum() == 8 && hand[m].getSuit() == hand[i].getSuit()){
+                                                endHand[0] = hand[i]; // Ass
+                                                endHand[1] = hand[j]; // König
+                                                endHand[2] = hand[k]; // Dame
+                                                endHand[3] = hand[l]; // Bube
+                                                endHand[4] = hand[m]; // 10
                                                 return 9;
                                             }
                                         }

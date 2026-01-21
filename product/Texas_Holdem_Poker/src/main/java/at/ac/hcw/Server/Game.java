@@ -265,6 +265,7 @@ public class Game {
     }
 
     private void performShowdown() {
+        syncBoardToPlayers();
         // Karten aufdecken
         for(ClientHandler ch : listeners) {
             Player p = ch.getPlayer();
@@ -447,5 +448,16 @@ public class Game {
             }
         }
         return 0;
+    }
+    private void syncBoardToPlayers() {
+        for (Player p : players) {
+            if (p != null) {
+                // Board Karten (Index 2 bis 6 im Player Hand Array)
+                for (int i = 0; i < board.size(); i++) {
+                    // +2, weil 0 und 1 die Handkarten sind
+                    p.receiveCard(board.get(i), i + 2);
+                }
+            }
+        }
     }
 }
