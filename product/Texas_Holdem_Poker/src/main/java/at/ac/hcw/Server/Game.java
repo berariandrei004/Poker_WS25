@@ -345,9 +345,15 @@ public class Game {
                     break;
             }
             broadcastToAll("WINNER " + winner.getName() + " " + handName);
-
+            int endPot = pots.get(0).getMoney();
             // Pot verteilen
-            winner.winPot(pots.get(0).getMoney());
+            if (endPot/2 > winner.getTotalBet()) {
+                //Wenn der einsatz weniger war als die Hälfte vom pot
+                winner.winPot(winner.getTotalBet()*2);
+                getOpponent(winner).winPot(pots.get(0).getMoney() - winner.getTotalBet()*2);
+            } else {
+                winner.winPot(pots.get(0).getMoney());
+            }
         }
 
         else {
