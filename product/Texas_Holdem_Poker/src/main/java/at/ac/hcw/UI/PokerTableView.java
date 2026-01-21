@@ -371,7 +371,7 @@ public class PokerTableView implements ServerMessageListener {
 
                 case "WINNER":
                     // Format: WINNER HERO 500
-                    showWinnerAnimation(parts.length >= 2 ? parts[1] : "Unbekannt");
+                    showWinnerAnimation(parts);
                     break;
             }
         });
@@ -446,8 +446,14 @@ public class PokerTableView implements ServerMessageListener {
         potLabel.setText("Pot: 0");
     }
 
-    private void showWinnerAnimation(String winnerName) {
-        Label winLabel = new Label(winnerName + " WINS!");
+    private void showWinnerAnimation(String[] allParts) {
+        String winnerLabelSting = allParts[1] + "wins with:";
+        for (int i=2; i<allParts.length;i++) {
+            winnerLabelSting += " " + allParts[i];
+        }
+
+
+        Label winLabel = new Label(winnerLabelSting + "!");
         winLabel.setStyle("-fx-font-size: 40; -fx-font-weight: bold; -fx-text-fill: gold; -fx-effect: dropshadow(gaussian, black, 10, 0.8, 0, 0);");
 
         StackPane root = (StackPane) animationLayer.getParent();

@@ -274,11 +274,13 @@ public class Game {
             ch.sendMessage("SHOWDOWN " + opp.getHand()[0] + " " + opp.getHand()[1]);
         }
         Player winner = null;
+        boolean compareHands = false;
         if (players[0].getPoints() > players[1].getPoints()) {
             winner = players[0];
         } else if (players[1].getPoints() > players[0].getPoints()){
             winner = players[1];
         } else {
+            compareHands = true;
             int win = compareEndHands(players[0],players[1]);
             if (win == 1) {
                 winner = players[0];
@@ -289,7 +291,49 @@ public class Game {
         }
 
         if (winner != null) {
-            broadcastToAll("WINNER " + winner.getName());
+            String handName = "";
+            int winnerPoints;
+            if (compareHands) {
+                winnerPoints = 0;
+            } else {
+                winnerPoints = winner.getPoints();
+            }
+            switch (winnerPoints) {
+                case 0:
+                    handName = "High Card";
+                    break;
+                case 1:
+                    handName = "One Pair";
+                    break;
+                case 2:
+                    handName = "Two Pair";
+                    break;
+                case 3:
+                    handName = "Three of a Kind";
+                    break;
+                case 4:
+                    handName = "Straight";
+                    break;
+                case 5:
+                    handName = "Flush";
+                    break;
+                case 6:
+                    handName = "Full House";
+                    break;
+                case 7:
+                    handName = "Four of a Kind";
+                    break;
+                case 8:
+                    handName = "Straight Flush";
+                    break;
+                case 9:
+                    handName = "Royal Flush";
+                    break;
+                default:
+                    handName = "Unknown Hand";
+                    break;
+            }
+            broadcastToAll("WINNER " + winner.getName() + " " + handName);
 
             // Pot verteilen
             winner.winPot(pots.get(0).getMoney());
