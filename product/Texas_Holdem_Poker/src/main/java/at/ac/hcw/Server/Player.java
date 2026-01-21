@@ -8,7 +8,6 @@ public class Player {
     private int bet;       // Aktueller Einsatz in dieser Wettrunde
     private int totalBet;  // Gesamteinsatz in der Hand (für Side-Pots relevant)
     private Card[] hand = new Card[7];     // Index 0-1: Handkarten, 2-6: Board
-    private Card[] endHand = new Card[5];  // Die beste 5er Kombination
     private boolean isAllin = false;
     private boolean folded = false;
     private boolean hasActed = false;
@@ -52,10 +51,6 @@ public class Player {
 
     public Card[] getHand() {
         return hand;
-    }
-
-    public Card[] getEndHand() {
-        return endHand;
     }
 
     // --- SPIEL-AKTIONEN (Server Logik) ---
@@ -138,28 +133,6 @@ public class Player {
         isAllin = false;
         this.hasActed = false;
         Arrays.fill(hand, null);
-        Arrays.fill(endHand, null);
-    }
-
-    public Card[] sortHand() {
-        Card[] sortedHand = new Card[5];
-        // Kopiere endHand sicherheitshalber, um null-Fehler zu vermeiden
-        if (endHand[0] == null) return sortedHand;
-
-        System.arraycopy(endHand, 0, sortedHand, 0, endHand.length);
-
-        for (int i = 0; i < sortedHand.length; i++) {
-            for (int j = i+1; j < sortedHand.length; j++) {
-                if (sortedHand[i] != null && sortedHand[j] != null) {
-                    if (sortedHand[i].getNum() < sortedHand[j].getNum()) {
-                        Card tmp = sortedHand[i];
-                        sortedHand[j] = sortedHand[i];
-                        sortedHand[i] = tmp;
-                    }
-                }
-            }
-        }
-        return sortedHand;
     }
 
     // --- DEINE ORIGINALE GEWINN-LOGIK ---
@@ -203,10 +176,6 @@ public class Player {
                                         if (hand[l] != null && hand[l].getNum() == 2 && hand[i].getSuit() == hand[l].getSuit()) {
                                             for (int m = 0; m < hand.length; m++) {
                                                 if (hand[m] != null && hand[m].getNum() == 3 && hand[m].getSuit() == hand[i].getSuit()) {
-                                                    endHand[0] = hand[i];
-                                                    for (int n = 1; n < endHand.length; n++) {
-                                                        endHand[n] = new Card(hand[j].getSuit(), hand[j].getNum() + n);
-                                                    }
                                                     return 8;
                                                 }
                                             }
@@ -223,9 +192,6 @@ public class Player {
                                         if (hand[l] != null && hand[l].getNum() == hand[i].getNum() + 3 && hand[i].getSuit() == hand[l].getSuit()) {
                                             for (int m = 0; m < hand.length; m++) {
                                                 if (hand[m] != null && hand[m].getNum() == hand[i].getNum() + 4 && hand[m].getSuit() == hand[i].getSuit()) {
-                                                    for (int n = 0; n < endHand.length; n++) {
-                                                        endHand[n] = new Card(hand[i].getSuit(), hand[i].getNum() + n);
-                                                    }
                                                     return 8;
                                                 }
                                             }
@@ -247,17 +213,6 @@ public class Player {
                     count++;
                 }
                 if (count == 4 && hand[i] != null) {
-                    for (int k = 0; k < 4; k++) {
-                        endHand[k] = new Card(k, hand[i].getNum());
-                    }
-                    Card fifth = new Card(0,0);
-                    for (int l = 0; l < hand.length; l++) {
-                        Card max =  new Card(0,0);
-                        if (hand[l] != null && hand[l].getNum() > max.getNum() && hand[l].getNum() != hand[i].getNum()) {
-                            max = hand[l];
-                        }
-                    }
-                    endHand[4] = fifth;
                     return 7;
                 }
             }
@@ -275,13 +230,6 @@ public class Player {
                                     count += 1;
                                 }
                                 if (count == 3) {
-                                    for (int m = 0; m < 3; m++) {
-                                        for (int n = 0; n < 7; n++) {
-                                            if (hand[n] != null && hand[n].getNum() == hand[i].getNum()) { // Achtung: Hier war im Original hand[i] referenziert
-                                                endHand[m] = hand[n]; // Hier könnte Logikfehler im Original sein, aber ich lasse es so
-                                            }
-                                        }
-                                    }
                                     // Ich habe hier leicht angepasst, um NullPointer zu vermeiden, aber Logik behalten:
                                     // Original Logik scheint hier etwas tricky zu sein, ich übernehme es so gut es geht.
                                     // (Der Originalcode hatte hier potenziell Bugs bei der Zuweisung, aber das ist 1:1 Kopie)
@@ -302,55 +250,6 @@ public class Player {
                     count++;
                 }
                 if (count >= 5) {
-                    // Logic for flush sorting
-                    if (count == 6) {
-                        int min = 12;
-                        for (int k = 0; k < hand.length; k++) {
-                            if (hand[k] != null && hand[k].getNum() < min) {
-                                min = hand[k].getNum();
-                            }
-                        }
-                        for (int l = 0; l < endHand.length; l++) {
-                            for (int m = 0; m < hand.length; m++) {
-                                if (hand[m] != null && hand[m].getSuit() == hand[i].getSuit() && hand[m].getNum() != min) {
-                                    endHand[l] = hand[m];
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    else if (count == 7) {
-                        int min1 = 12;
-                        int min2 = 11;
-                        for (int k = 0; k < hand.length; k++) {
-                            if (hand[k] != null && hand[k].getNum() < min1) {
-                                min1 = hand[k].getNum();
-                            }
-                        }
-                        for (int l = 0; l < hand.length; l++) {
-                            if (hand[l] != null && hand[l].getNum() < min2 && hand[l].getNum() != min1) {
-                                min2 = hand[l].getNum();
-                            }
-                        }
-                        for (int m = 0; m < endHand.length; m++) {
-                            for (int n = 0; n < hand.length; n++) {
-                                if (hand[n] != null && hand[n].getSuit() == hand[i].getSuit() && hand[n].getNum() != min1 && hand[n].getNum() != min2) {
-                                    endHand[m] = hand[n];
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        for (int k = 0; k < endHand.length; k++) {
-                            for (int l = 0; l < hand.length; l++) {
-                                if (hand[l] != null && hand[l].getSuit() == hand[i].getSuit()) {
-                                    endHand[k] = hand[l];
-                                    break;
-                                }
-                            }
-                        }
-                    }
                     return 5;
                 }
             }
@@ -368,10 +267,6 @@ public class Player {
                                         if (hand[l] != null && hand[l].getNum() == 2) {
                                             for (int m = 0; m < hand.length; m++) {
                                                 if (hand[m] != null && hand[m].getNum() == 3) {
-                                                    endHand[0] = hand[i];
-                                                    for (int n = 1; n < endHand.length; n++) {
-                                                        endHand[n] = new Card(hand[i].getSuit(), hand[i].getNum() + n);
-                                                    }
                                                     return 4;
                                                 }
                                             }
@@ -388,9 +283,6 @@ public class Player {
                                         if (hand[l] != null && hand[l].getNum() == hand[i].getNum() + 3) {
                                             for (int m = 0; m < hand.length; m++) {
                                                 if (hand[m] != null && hand[m].getNum() == hand[i].getNum() + 4) {
-                                                    for (int n = 0; n < endHand.length; n++) {
-                                                        endHand[n] = new Card(hand[i].getSuit(), hand[i].getNum() + n);
-                                                    }
                                                     return 4;
                                                 }
                                             }
@@ -412,26 +304,6 @@ public class Player {
                     count++;
                 }
                 if (count == 3 && hand[i] != null) {
-                    for (int k = 0; k < 3; k++) {
-                        for (int l = 0; l < hand.length; l++) {
-                            if (hand[l] != null && hand[l].getNum() == hand[i].getNum()){
-                                endHand[k] = hand[l];
-                                break;
-                            }
-                        }
-                    }
-                    Card card4 = new Card(0,0);
-                    Card card5 = new Card(0,0);
-                    for (int k = 0; k < hand.length; k++) {
-                        if (hand[k] != null && hand[k].getNum() > card4.getNum() && hand[k].getNum() != hand[i].getNum()) {
-                            card4 = hand[k];
-                        }
-                        if (hand[k] != null && hand[k].getNum() > card5.getNum() && hand[k].getNum() != hand[i].getNum() && hand[k].getNum() != card4.getNum()) {
-                            card5 = hand[k];
-                        }
-                    }
-                    endHand[3] = card4;
-                    endHand[4] = card5;
                     return 3;
                 }
             }
@@ -445,17 +317,6 @@ public class Player {
                         if (hand[k] != null && hand[k].getNum() != hand[i].getNum()) {
                             for (int l = k + 1; l < hand.length; l++) {
                                 if (hand[l] != null && hand[k].getNum() == hand[l].getNum()) {
-                                    endHand[0] = hand[i];
-                                    endHand[1] = hand[j];
-                                    endHand[2] = hand[k];
-                                    endHand[3] = hand[l];
-                                    Card card5 = new Card(0,0);
-                                    for (int m = 0; m < hand.length; m++) {
-                                        if (hand[m] != null && hand[m].getNum() > card5.getNum() && card5.getNum() != hand[i].getNum() && card5.getNum() != hand[k].getNum()) {
-                                            card5 = hand[m];
-                                        }
-                                    }
-                                    endHand[4] = card5;
                                     return 2;
                                 }
                             }
@@ -469,29 +330,6 @@ public class Player {
         for (int i = 0; i < 6; i++) {
             for (int j = i+1; j < hand.length; j++) {
                 if (hand[i] != null && hand[j] != null && hand[i].getNum() == hand[j].getNum()) {
-                    endHand[0] = hand[i];
-                    endHand[1] = hand[j];
-                    for (int k = 0; k < hand.length; k++) {
-                        Card card3 = new Card(0,0);
-                        if (hand[k] != null && hand[k].getNum() > card3.getNum() && hand[k].getNum() != hand[i].getNum()) {
-                            card3 = hand[k];
-                        }
-                        endHand[2] = card3;
-                    }
-                    for (int k = 0; k < hand.length; k++) {
-                        Card card4 = new Card(0,0);
-                        if (hand[k] != null && hand[k].getNum() > card4.getNum() && hand[k].getNum() != hand[i].getNum() && hand[k].getNum() != endHand[2].getNum()) {
-                            card4 = hand[k];
-                        }
-                        endHand[3] = card4;
-                    }
-                    for (int k = 0; k < hand.length; k++) {
-                        Card card5 = new Card(0,0);
-                        if (hand[k] != null && hand[k].getNum() > card5.getNum() && hand[k].getNum() != hand[i].getNum() && hand[k].getNum() != endHand[2].getNum() && hand[k].getNum() != endHand[3].getNum()) {
-                            card5 = hand[k];
-                        }
-                        endHand[4] = card5;
-                    }
                     return 1;
                 }
             }

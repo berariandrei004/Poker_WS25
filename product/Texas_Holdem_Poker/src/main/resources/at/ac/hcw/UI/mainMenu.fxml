@@ -16,10 +16,5 @@
             <Font size="35.0" />
          </font>
       </Button>
-      <Button mnemonicParsing="false" prefHeight="80.0" prefWidth="350.0" text="Anleitung">
-         <font>
-            <Font size="35.0" />
-         </font>
-      </Button>
    </children>
 </VBox>

@@ -89,7 +89,7 @@ public class Game {
 
             // Nachricht an diesen Spieler: Seine Karten
             sendToPlayer(p, "HAND " + c1 + " " + c2);
-            // Nachricht an den Gegner: "Gegner hat Karten bekommen"
+            // Nachricht an den Gegner: "Gegner hat seine Karten bekommen"
             sendToOpponent(p, "OPPONENT_HAND");
         }
 
@@ -272,34 +272,19 @@ public class Game {
             // Sende dem Spieler die Karten des Gegners
             ch.sendMessage("SHOWDOWN " + opp.getHand()[0] + " " + opp.getHand()[1]);
         }
-        Player winner = null;
-        if (players[0].getPoints() > players[1].getPoints()) {
+        Player winner;
+        if (players[0].getPoints() >=  players[1].getPoints()) {
             winner = players[0];
-        } else if (players[1].getPoints() > players[0].getPoints()){
-            winner = players[1];
         } else {
-            int win = compareEndHands(players[0],players[1]);
-            if (win == 1) {
-                winner = players[0];
-            }
-            else if (win == -1) {
-                winner = players[1];
-            }
+            winner = players[1];
         }
 
-        if (winner != null) {
-            broadcastToAll("WINNER " + winner.getName());
+        broadcastToAll("WINNER " + winner.getName());
 
-            // Pot verteilen
-            winner.winPot(pots.get(0).getMoney());
-        }
+        // Pot verteilen
+        winner.winPot(pots.get(0).getMoney());
 
-        else {
-            broadcastToAll("Splitted Pot due to equal hands");
 
-            players[0].winPot(pots.get(0).getMoney()/2);
-            players[1].winPot(pots.get(0).getMoney()/2);
-        }
         pots.get(0).setMoney(0);
 
         // Dealer rotieren
@@ -431,21 +416,5 @@ public class Game {
             }
         }
         return true;
-    }
-
-    //Vergleiche bei gleichwertigen getPoints
-    public int compareEndHands(Player a, Player b) {
-        Card[] ha = a.getEndHand();
-        Card[] hb = b.getEndHand();
-
-        for (int i = 0; i < ha.length; i++) {
-            if (ha[i].getNum() > hb[i].getNum()) {
-                return 1;
-            }
-            if (ha[i].getNum() < hb[i].getNum()) {
-                return -1;
-            }
-        }
-        return 0;
     }
 }

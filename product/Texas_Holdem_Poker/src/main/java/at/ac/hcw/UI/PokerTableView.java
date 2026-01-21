@@ -548,12 +548,10 @@ public class PokerTableView implements ServerMessageListener {
         menuBox.setStyle("-fx-background-color: #333; -fx-padding: 30; -fx-background-radius: 10; -fx-border-color: white;");
         menuBox.setMaxSize(300, 200);
 
-        Button helpBtn = new Button("Hilfe");
         Button exitBtn = new Button("Spiel Beenden");
         Button resumeBtn = new Button("Zurück");
 
         String style = "-fx-font-size: 16; -fx-min-width: 150;";
-        helpBtn.setStyle(style);
         exitBtn.setStyle(style);
         resumeBtn.setStyle(style);
 
@@ -566,7 +564,7 @@ public class PokerTableView implements ServerMessageListener {
             }
         });
 
-        menuBox.getChildren().addAll(new Label("Menü"){{setStyle("-fx-text-fill:white; -fx-font-size:20;");}}, resumeBtn, helpBtn, exitBtn);
+        menuBox.getChildren().addAll(new Label("Menü"){{setStyle("-fx-text-fill:white; -fx-font-size:20;");}}, resumeBtn, exitBtn);
         overlay.getChildren().add(menuBox);
     }
 }
