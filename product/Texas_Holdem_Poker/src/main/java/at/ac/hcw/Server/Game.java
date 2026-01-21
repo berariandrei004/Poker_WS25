@@ -121,11 +121,19 @@ public class Game {
             case "CHECK":
                 // Check ist nur erlaubt, wenn player.bet == currentBet
                 if (player.getBet() < currentBet) {
-                    // Falls es eigentlich ein Call sein müsste (Client sendet manchmal Check für beides)
-                    int toCall = currentBet - player.getBet();
-                    player.call(toCall);
-                    mainPot.raisePot(toCall);
-                    player.setHasActed(true);
+                    if (player.getBudget() < currentBet) {
+                        //Falls es all in sein muss
+                        int allInAmount = player.allIn();
+                        mainPot.raisePot(allInAmount);
+                        player.setHasActed(true);
+                    } else {
+                        // Falls es  ein Call ist
+                        int toCall = currentBet - player.getBet();
+                        player.call(toCall);
+                        mainPot.raisePot(toCall);
+                        player.setHasActed(true);
+                    }
+
                 } else {
                     player.check();
                     player.setHasActed(true);
@@ -141,8 +149,11 @@ public class Game {
 
             case "RAISE":
                 int amount = Integer.parseInt(parts[1]);
-                // Client sendet oft absolute Betrag oder Raise-Betrag. Hier Annahme: Raise Amount on top
-                // Einfache Logik:
+                if (player.getBudget() < amount) {
+                    amount = player.getBudget();
+                }
+
+
                 int callPart = currentBet - player.getBet();
                 player.call(callPart);
                 mainPot.raisePot(callPart);
