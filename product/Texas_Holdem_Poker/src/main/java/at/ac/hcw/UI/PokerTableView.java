@@ -549,21 +549,37 @@ public class PokerTableView implements ServerMessageListener {
         overlay.setVisible(false);
         overlay.setStyle("-fx-background-color: rgba(0,0,0,0.8);");
 
+        // 1. Das Hauptmenü (Box)
         VBox menuBox = new VBox(20);
         menuBox.setAlignment(Pos.CENTER);
         menuBox.setStyle("-fx-background-color: #333; -fx-padding: 30; -fx-background-radius: 10; -fx-border-color: white;");
-        menuBox.setMaxSize(300, 200);
+        menuBox.setMaxSize(300, 250);
 
         Button helpBtn = new Button("Hilfe");
         Button exitBtn = new Button("Spiel Beenden");
-        Button resumeBtn = new Button("Zurück");
+        Button resumeBtn = new Button("Zurück zum Spiel");
 
-        String style = "-fx-font-size: 16; -fx-min-width: 150;";
+        String style = "-fx-font-size: 16; -fx-min-width: 180; -fx-base: #444; -fx-text-fill: white; -fx-font-weight: bold;";
         helpBtn.setStyle(style);
         exitBtn.setStyle(style);
         resumeBtn.setStyle(style);
 
+        // 2. Das Hilfefenster initialisieren (aber noch unsichtbar lassen)
+        // Wir übergeben menuBox, damit der "Zurück" Button im Hilfe-Fenster das Menü wieder anzeigen kann
+        initHelpWindow(menuBox);
+
+        // --- Button Actions ---
+
+        // Menü schließen
         resumeBtn.setOnAction(e -> overlay.setVisible(false));
+
+        // Hilfe öffnen: Menü ausblenden, Hilfe einblenden
+        helpBtn.setOnAction(e -> {
+            menuBox.setVisible(false);
+            helpWindow.setVisible(true);
+        });
+
+        // Spiel verlassen
         exitBtn.setOnAction(e -> {
             try {
                 App.getSceneController().switchToMainMenu();
@@ -572,7 +588,67 @@ public class PokerTableView implements ServerMessageListener {
             }
         });
 
-        menuBox.getChildren().addAll(new Label("Menü"){{setStyle("-fx-text-fill:white; -fx-font-size:20;");}}, resumeBtn, helpBtn, exitBtn);
-        overlay.getChildren().add(menuBox);
+        menuBox.getChildren().addAll(
+                new Label("Menü"){{setStyle("-fx-text-fill:white; -fx-font-size:24; -fx-font-weight:bold;");}},
+                resumeBtn,
+                helpBtn,
+                exitBtn
+        );
+
+        // Beide Container zum Overlay hinzufügen (StackPane stapelt sie übereinander)
+        overlay.getChildren().addAll(menuBox, helpWindow);
+    }
+
+    private void initHelpWindow(VBox parentMenu) {
+        helpWindow = new VBox(15);
+        helpWindow.setAlignment(Pos.TOP_CENTER);
+        helpWindow.setMaxSize(600, 500); // Maximale Größe festlegen
+        helpWindow.setPadding(new Insets(20));
+        helpWindow.setVisible(false); // Initial unsichtbar
+        helpWindow.setStyle(
+                "-fx-background-color: #222;" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-effect: dropshadow(gaussian, black, 20, 0.5, 0, 0);"
+        );
+
+        Label title = new Label("Poker Hand Rankings");
+        title.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;");
+
+        // Bild laden
+        ImageView imageView = new ImageView();
+        try {
+            // Pfad angepasst an deine Anforderung
+            Image helpImage = new Image(getClass().getResourceAsStream("/pokerhands/poker_hands_new.png"));
+            imageView.setImage(helpImage);
+            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(520); // Breite anpassen
+        } catch (Exception e) {
+            System.err.println("Hilfebild konnte nicht geladen werden: /pokerhands/poker_hands_new.png");
+            Label errorLabel = new Label("Bild nicht gefunden.");
+            errorLabel.setTextFill(Color.RED);
+            helpWindow.getChildren().add(errorLabel);
+        }
+
+        // ScrollPane falls das Bild zu hoch ist für kleine Bildschirme
+        ScrollPane scrollPane = new ScrollPane(imageView);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: #222; -fx-background-color: #222; -fx-border-color: transparent;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // Zurück Button (bringt einen zurück zum Hauptmenü)
+        Button backButton = new Button("Zurück zum Menü");
+        backButton.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-base: #555; -fx-text-fill: white;");
+        backButton.setOnAction(e -> {
+            helpWindow.setVisible(false);
+            parentMenu.setVisible(true);
+        });
+
+        helpWindow.getChildren().addAll(title, scrollPane, backButton);
+
+        // Damit der ScrollPane den verfügbaren Platz einnimmt
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
     }
 }
