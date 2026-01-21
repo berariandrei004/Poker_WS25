@@ -447,7 +447,7 @@ public class PokerTableView implements ServerMessageListener {
     }
 
     private void showWinnerAnimation(String[] allParts) {
-        String winnerLabelSting = allParts[1] + "wins with:";
+        String winnerLabelSting = allParts[1] + " wins with:";
         for (int i=2; i<allParts.length;i++) {
             winnerLabelSting += " " + allParts[i];
         }

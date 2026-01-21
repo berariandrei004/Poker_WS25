@@ -340,7 +340,7 @@ public class Game {
         }
 
         else {
-            broadcastToAll("Splitted Pot due to equal hands");
+            broadcastToAll("WINNER " + "Everybody splitted Pot, due to equal hands");
 
             players[0].winPot(pots.get(0).getMoney()/2);
             players[1].winPot(pots.get(0).getMoney()/2);
